@@ -29,8 +29,17 @@ const userSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'approved', 'blocked'],
+    enum: ['pending', 'approved', 'blocked', 'suspended'],
     default: 'pending'
+  },
+  trust_badge: {
+    type: String,
+    enum: ['pending', 'verified', 'suspended'],
+    default: 'pending'
+  },
+  admin_notes: {
+    type: String,
+    default: ''
   },
   crop_limit: {
     type: Number,

@@ -34,9 +34,13 @@ export const getUsers = async (req, res) => {
 
 export const updateUserStatus = async (req, res) => {
   try {
+    const { status, trust_badge, admin_notes } = req.body;
     const user = await User.findById(req.params.id);
     if(user) {
-      user.status = req.body.status || user.status;
+      if (status !== undefined) user.status = status;
+      if (trust_badge !== undefined) user.trust_badge = trust_badge;
+      if (admin_notes !== undefined) user.admin_notes = admin_notes;
+
       await user.save();
       res.json({ message: 'User status updated', user });
     } else {

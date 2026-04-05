@@ -192,3 +192,119 @@ export function LeaseDealModal({ isOpen, onClose, land, onSubmit }) {
     </div>
   );
 }
+
+export function UserDetailModal({ isOpen, onClose, user, lands, partnerships, marketplaceItems, onSubmit }) {
+  if (!isOpen || !user) return null;
+  const [adminNotes, setAdminNotes] = useState(user.admin_notes || '');
+  
+  // Compute Analytics Locally
+  const userLands = (lands || []).filter(l => l.farmer_id?._id === user._id || l.farmer_id === user._id);
+  const approvedLands = userLands.filter(l => !['pending', 'rejected'].includes(l.status));
+  const userPartnerships = (partnerships || []).filter(p => p.farmer_id?._id === user._id || p.farmer_id === user._id);
+  const userOrders = (marketplaceItems || []).filter(m => m.buyer_id === user._id);
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-[4px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
+      <div className="bg-white rounded-[2rem] w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+         {/* DB Header */}
+         <div className="px-8 py-6 bg-gray-50 border-b border-gray-100 flex justify-between items-start shrink-0">
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <h3 className="text-3xl font-black text-gray-800">{user.name}</h3>
+                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${user.trust_badge === 'verified' ? 'bg-green-100 text-green-700' : (user.trust_badge === 'suspended' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-600')}`}>
+                   {user.trust_badge || 'pending'}
+                </span>
+              </div>
+              <p className="text-sm font-medium text-gray-500">{user.email} &bull; {user.mobile} &bull; {user.role.toUpperCase()}</p>
+            </div>
+            <button onClick={onClose} className="p-2 bg-white rounded-full border border-gray-200 hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"><XCircle size={24}/></button>
+         </div>
+
+         {/* Body */}
+         <div className="p-8 overflow-y-auto flex-grow bg-white grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {/* Left Col: Analytics */}
+            <div className="lg:col-span-2 space-y-6">
+               <h4 className="font-black text-lg text-gray-800 border-b border-gray-100 pb-2">Platform Activity Analytics</h4>
+               
+               {user.role === 'farmer' ? (
+                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl text-center">
+                       <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Total Submissions</p>
+                       <p className="text-2xl font-black text-blue-700">{userLands.length}</p>
+                    </div>
+                    <div className="bg-green-50 border border-green-100 p-4 rounded-2xl text-center">
+                       <p className="text-[10px] font-black text-green-500 uppercase tracking-widest mb-1">Approved Deals</p>
+                       <p className="text-2xl font-black text-green-700">{approvedLands.length}</p>
+                    </div>
+                    <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-center">
+                       <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1">Active Partnerships</p>
+                       <p className="text-2xl font-black text-indigo-700">{userPartnerships.length}</p>
+                    </div>
+
+                    {userLands.length > 0 && (
+                       <div className="col-span-full border border-gray-100 rounded-2xl p-4 mt-2 bg-gray-50">
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Recent Evidence History</p>
+                          <div className="flex gap-2 overflow-x-auto pb-2">
+                             {userLands.flatMap(l => l.images || []).slice(0, 5).map((img, i) => (
+                                <img key={i} src={img} className="h-16 w-24 object-cover rounded-xl border border-gray-200 shadow-sm" alt="evidence"/>
+                             ))}
+                          </div>
+                       </div>
+                    )}
+                 </div>
+               ) : (
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-orange-50 border border-orange-100 p-6 rounded-2xl text-center">
+                       <p className="text-xs font-black text-orange-500 uppercase tracking-widest mb-1">Market Orders Placed</p>
+                       <p className="text-3xl font-black text-orange-700">{userOrders.length}</p>
+                    </div>
+                    <div className="bg-purple-50 border border-purple-100 p-6 rounded-2xl text-center">
+                       <p className="text-xs font-black text-purple-500 uppercase tracking-widest mb-1">Standing</p>
+                       <p className="text-xl font-black text-purple-700 capitalize">{user.status}</p>
+                    </div>
+                 </div>
+               )}
+            </div>
+
+            {/* Right Col: Admin Controls */}
+            <div className="space-y-6">
+               <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
+                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-1"><ShieldCheck size={14}/> Trust Control Panel</p>
+                 <div className="space-y-3">
+                    <button 
+                      onClick={() => onSubmit('users', user._id, 'approved', { trust_badge: 'verified' })}
+                      className="w-full bg-green-100 text-green-700 font-bold py-3 rounded-xl hover:bg-green-200 transition-colors text-xs tracking-wide shadow-sm"
+                    >
+                      Issue VERIFIED Badge
+                    </button>
+                    <button 
+                      onClick={() => onSubmit('users', user._id, 'suspended', { trust_badge: 'suspended' })}
+                      className="w-full bg-red-100 text-red-700 font-bold py-3 rounded-xl hover:bg-red-200 transition-colors text-xs tracking-wide shadow-sm"
+                    >
+                      Suspend Account
+                    </button>
+                 </div>
+               </div>
+
+               <div>
+                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1">Administrative Notes</p>
+                 <textarea 
+                   className="w-full border border-gray-200 rounded-2xl p-4 text-sm font-medium focus:outline-none focus:border-gray-400 min-h-[120px] bg-white shadow-sm"
+                   placeholder="Private notes (Not visible to user)..."
+                   value={adminNotes} onChange={e=>setAdminNotes(e.target.value)}
+                 />
+                 <button 
+                   onClick={() => onSubmit('users', user._id, user.status, { admin_notes: adminNotes })}
+                   className="w-full mt-3 bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition-colors text-xs tracking-wide shadow-md active:scale-95"
+                 >
+                   Save Notes / Log Update
+                 </button>
+               </div>
+            </div>
+
+         </div>
+      </div>
+    </div>
+  );
+}
