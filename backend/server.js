@@ -16,8 +16,6 @@ dotenv.config();
 
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import mongoSanitize from 'express-mongo-sanitize';
-import xss from 'xss-clean';
 
 // Setup Rate Limiter
 const apiLimiter = rateLimit({
@@ -29,10 +27,10 @@ const apiLimiter = rateLimit({
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.set('trust proxy', 1); // Trust first proxy for Render load balancers
+
 // Security Middleware
 app.use(helmet());
-app.use(mongoSanitize());
-app.use(xss());
 
 // Strict CORS
 app.use(cors({
