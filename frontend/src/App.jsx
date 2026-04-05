@@ -12,6 +12,7 @@ import Profile from './pages/Profile';
 import Tools from './pages/Tools';
 import Partnerships from './pages/Partnerships';
 import Bookings from './pages/Bookings';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function LanguageSelector() {
   const { i18n } = useTranslation();
@@ -96,16 +97,23 @@ function App() {
       <Routes>
         <Route path="/" element={<LanguageSelector />} />
         <Route path="/home" element={<Home />} />
-        <Route path="/crops" element={<Crops />} />
-        <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/admin" element={<AdminPanel />} />
-        <Route path="/lands" element={<LandManagement />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/tools" element={<Tools />} />
-        <Route path="/partnerships" element={<Partnerships />} />
-        <Route path="/bookings" element={<Bookings />} />
+        
+        {/* Protected Routes - All logged in users */}
+        <Route path="/crops" element={<ProtectedRoute><Crops /></ProtectedRoute>} />
+        <Route path="/marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
+        <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        
+        {/* Protected Routes - Admin only */}
+        <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'superadmin']}><AdminPanel /></ProtectedRoute>} />
+        
+        {/* Protected Routes - Farmer only */}
+        <Route path="/lands" element={<ProtectedRoute allowedRoles={['farmer']}><LandManagement /></ProtectedRoute>} />
+        <Route path="/tools" element={<ProtectedRoute allowedRoles={['farmer']}><Tools /></ProtectedRoute>} />
+        <Route path="/partnerships" element={<ProtectedRoute allowedRoles={['farmer']}><Partnerships /></ProtectedRoute>} />
+
         <Route path="/*" element={<Home />} />
       </Routes>
     </Router>
