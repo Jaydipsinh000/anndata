@@ -24,8 +24,8 @@ function ManageUsers({ users, lands, partnerships, marketplaceItems, updateStatu
                           (u.mobile || '').includes(search.toLowerCase());
       if (!matchSearch) return false;
       if (filterRole !== 'all' && u.role !== filterRole) return false;
-      // hide superadmins from normal user list mostly
-      if (u.role === 'superadmin') return false; 
+      // hide superadmins and admins from normal user list mostly
+      if (['admin', 'superadmin'].includes(u.role)) return false; 
       return true;
     });
   }, [users, search, filterRole]);

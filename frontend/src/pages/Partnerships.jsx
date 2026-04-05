@@ -44,7 +44,7 @@ function Partnerships() {
   // --- Compute ERP Analytics ---
   const filteredPartnerships = useMemo(() => {
     if (activeTab === 'All') return partnerships;
-    return partnerships.filter(p => p.status.toLowerCase() === activeTab.toLowerCase());
+    return partnerships.filter(p => (p.status || '').toLowerCase() === activeTab.toLowerCase());
   }, [partnerships, activeTab]);
 
   const analytics = useMemo(() => {
