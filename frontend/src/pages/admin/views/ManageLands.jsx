@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { LandReviewModal } from '../components/AdminComponents';
+import { ShieldCheck } from 'lucide-react';
 
 function ManageLands({ lands, updateStatus }) {
   const [reviewingLand, setReviewingLand] = useState(null);
@@ -19,6 +20,7 @@ function ManageLands({ lands, updateStatus }) {
               <th className="p-4">Farmer</th>
               <th className="p-4">Location</th>
               <th className="p-4">Area</th>
+              <th className="p-4">Trust</th>
               <th className="p-4">Deal Status</th>
               <th className="p-4 text-right">Moderator</th>
             </tr>
@@ -33,7 +35,14 @@ function ManageLands({ lands, updateStatus }) {
                 </td>
                 <td className="p-4 font-bold text-gray-800">{land.farmer_id?.name}</td>
                 <td className="p-4 font-medium text-gray-600">{land.location}</td>
-                <td className="p-4 font-medium text-gray-600">{land.area_value} {land.area_unit}</td>
+                <td className="p-4 font-medium text-gray-600">{land.area_value || land.area_in_acres} {land.area_unit || 'Acres'}</td>
+                <td className="p-4">
+                  {land.trust_badge === 'verified' ? (
+                     <span className="flex items-center gap-1 text-[10px] uppercase font-black text-green-700 bg-green-50 border border-green-200 px-2 py-1 rounded w-max"><ShieldCheck size={12}/> Verified</span>
+                  ) : (
+                     <span className="flex items-center gap-1 text-[10px] uppercase font-black text-gray-500 bg-gray-100 border border-gray-200 px-2 py-1 rounded w-max">Pending</span>
+                  )}
+                </td>
                 <td className="p-4">
                   <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${['pending','partnership_active'].includes(land.status) ? 'bg-orange-100 text-orange-600' : (land.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700')}`}>
                     {land.status}
@@ -52,7 +61,7 @@ function ManageLands({ lands, updateStatus }) {
                 </td>
               </tr>
             ))}
-            {lands.length === 0 && <tr><td colSpan="6" className="p-8 text-center text-gray-400 font-bold italic">No land proposals found.</td></tr>}
+            {lands.length === 0 && <tr><td colSpan="7" className="p-8 text-center text-gray-400 font-bold italic">No land proposals found.</td></tr>}
           </tbody>
         </table>
       </div>

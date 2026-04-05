@@ -11,6 +11,8 @@ import landRoutes from './routes/landRoutes.js';
 import partnershipRoutes from './routes/partnershipRoutes.js';
 import toolRoutes from './routes/toolRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
+import path from 'path';
 
 dotenv.config();
 
@@ -50,6 +52,11 @@ app.use('/api/lands', landRoutes);
 app.use('/api/partnerships', partnershipRoutes);
 app.use('/api/tools', toolRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/upload', uploadRoutes);
+
+// Make 'uploads' folder statically accessible
+const __dirname = path.resolve();
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/', (req, res) => {
   res.send('Anndata MERN Backend is running');
