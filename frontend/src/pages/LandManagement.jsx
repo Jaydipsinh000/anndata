@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { useTranslation } from 'react-i18next';
-import { Map, MapPin, Plus, Clock, XCircle, CheckCircle, FileText } from 'lucide-react';
+import { Map, MapPin, Plus, Clock, XCircle, CheckCircle, FileText, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LandUploadForm from '../components/farmer/LandUploadForm';
 
@@ -34,6 +34,28 @@ function LandManagement() {
         setLoading(false);
       });
   }, []);
+
+  const deleteLand = async (id) => {
+    const userInfoStr = localStorage.getItem('userInfo');
+    if(!userInfoStr) return;
+    const token = JSON.parse(userInfoStr).token;
+    
+    // Optional optimistic UI update
+    const previousLands = [...lands];
+    setLands(lands.filter(l => l._id !== id));
+
+    try {
+      const res = await fetch(`/api/lands/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if(!res.ok) throw new Error('Failed to delete');
+    } catch (err) {
+      // Revert if failed
+      setLands(previousLands);
+      console.error('Error deleting land:', err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#f8fafc] font-sans pb-20 selection:bg-[#006400] selection:text-white">
@@ -106,12 +128,20 @@ function LandManagement() {
                    )}
 
                    {land.status === 'rejected' && (
-                      <div className="bg-red-50 border border-red-100 text-red-700 p-5 rounded-2xl mb-4 flex items-start gap-4">
-                         <XCircle className="shrink-0 mt-0.5" />
-                         <div>
-                            <p className="font-bold">{t('land.proposalDeclined')}</p>
-                            <p className="text-sm font-medium bg-red-100/50 p-2 mt-2 rounded border border-red-200">{land.admin_message}</p>
+                      <div className="bg-red-50 border border-red-100 text-red-700 p-5 rounded-2xl mb-4 flex flex-col gap-3">
+                         <div className="flex items-start gap-4">
+                           <XCircle className="shrink-0 mt-0.5" />
+                           <div className="flex-1">
+                              <p className="font-bold">{t('land.proposalDeclined')}</p>
+                              <p className="text-sm font-medium bg-red-100/50 p-2 mt-2 rounded border border-red-200">{land.admin_message || "Your proposal did not meet current requirements."}</p>
+                           </div>
                          </div>
+                         <button 
+                           onClick={() => deleteLand(land._id)}
+                           className="self-end mt-2 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md transition-colors active:scale-95"
+                         >
+                           <Trash2 size={16} /> Acknowledge & Remove
+                         </button>
                       </div>
                    )}
 
