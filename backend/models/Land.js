@@ -44,7 +44,12 @@ const landSchema = new mongoose.Schema({
 
   // Admin and Lifecycle Fields
   admin_message: { type: String, default: '' },
-  status: { type: String, enum: ['pending', 'active', 'rejected', 'rented_to_company', 'partnership_active', 'sold'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'under_discussion', 'active', 'rejected', 'rented_to_company', 'partnership_active', 'sold'], default: 'pending' },
+  
+  // Rent Deal specific tracks
+  next_payment_date: { type: Date },
+  payment_schedule: { type: String, enum: ['monthly', 'half-yearly', 'yearly'] },
+  
   current_crop: { type: mongoose.Schema.Types.ObjectId, ref: 'Crop', required: false },
   contract_start_date: { type: Date },
   contract_end_date: { type: Date }

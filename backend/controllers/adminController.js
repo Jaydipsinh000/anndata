@@ -80,7 +80,7 @@ export const getAdminLands = async (req, res) => {
 };
 export const updateLandStatus = async (req, res) => {
   try {
-    const { status, admin_message, contract_start_date, contract_end_date } = req.body;
+    const { status, admin_message, contract_start_date, contract_end_date, trust_badge, next_payment_date, payment_schedule } = req.body;
     const land = await Land.findById(req.params.id);
     
     if (land) {
@@ -89,6 +89,10 @@ export const updateLandStatus = async (req, res) => {
       if (admin_message !== undefined) land.admin_message = admin_message;
       if (contract_start_date) land.contract_start_date = contract_start_date;
       if (contract_end_date) land.contract_end_date = contract_end_date;
+      if (trust_badge) land.trust_badge = trust_badge;
+      if (next_payment_date) land.next_payment_date = next_payment_date;
+      if (payment_schedule) land.payment_schedule = payment_schedule;
+      
       const updatedLand = await land.save();
 
       if (status === 'partnership_active' && oldStatus !== 'partnership_active') {

@@ -21,17 +21,30 @@ export const getAllPartnerships = async (req, res) => {
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
 
-// Admin: Setup basic fields (Crop, Dates, Status)
+// Admin: Setup basic fields (Crop, Dates, Status, Financials)
 export const updatePartnershipBasic = async (req, res) => {
   try {
-    const { assigned_crop, start_date, end_date, status } = req.body;
+    const { 
+       assigned_crop, start_date, end_date, status, 
+       crop_stage, expected_yield_tons, total_income, 
+       net_profit, final_farmer_share, final_company_share 
+    } = req.body;
+    
     const p = await Partnership.findById(req.params.id);
     if (!p) return res.status(404).json({ message: 'Not found' });
 
-    if (assigned_crop) p.assigned_crop = assigned_crop;
-    if (start_date) p.start_date = start_date;
-    if (end_date) p.end_date = end_date;
-    if (status) p.status = status;
+    if (assigned_crop !== undefined) p.assigned_crop = assigned_crop;
+    if (crop_stage !== undefined) p.crop_stage = crop_stage;
+    if (expected_yield_tons !== undefined) p.expected_yield_tons = expected_yield_tons;
+    
+    if (start_date !== undefined) p.start_date = start_date;
+    if (end_date !== undefined) p.end_date = end_date;
+    if (status !== undefined) p.status = status;
+    
+    if (total_income !== undefined) p.total_income = total_income;
+    if (net_profit !== undefined) p.net_profit = net_profit;
+    if (final_farmer_share !== undefined) p.final_farmer_share = final_farmer_share;
+    if (final_company_share !== undefined) p.final_company_share = final_company_share;
 
     await p.save();
     res.json(p);
