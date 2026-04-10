@@ -4,19 +4,22 @@ import Marketplace from '../models/Marketplace.js';
 import Land from '../models/Land.js';
 import Tool from '../models/Tool.js';
 import Partnership from '../models/Partnership.js';
+import AdvanceBooking from '../models/AdvanceBooking.js';
 
 export const getDashboardStats = async (req, res) => {
   try {
-    const totalUsers = await User.countDocuments();
+    const totalFarmers = await User.countDocuments({ role: 'farmer' });
+    const totalBuyers = await User.countDocuments({ role: 'buyer' });
     const totalCrops = await Crop.countDocuments();
-    const pendingCrops = await Crop.countDocuments({ status: 'pending' });
-    const marketItems = await Marketplace.countDocuments();
+    const activeDeals = await AdvanceBooking.countDocuments({ status: { $nin: ['completed', 'rejected'] } });
+    const completedSales = await AdvanceBooking.countDocuments({ status: 'completed' });
 
     res.json({
-      totalUsers,
+      totalFarmers,
+      totalBuyers,
       totalCrops,
-      pendingCrops,
-      marketItems
+      activeDeals,
+      completedSales
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -62,15 +65,42 @@ export const getAdminCrops = async (req, res) => {
 
 export const updateCropStatus = async (req, res) => {
   try {
+    const { status, admin_message } = req.body;
     const crop = await Crop.findById(req.params.id);
     if(crop) {
-      crop.status = req.body.status || crop.status;
-      crop.approved_by = req.body.status === 'approved' ? req.user._id : crop.approved_by;
+      crop.status = status;
+      if (admin_message) crop.admin_message = admin_message;
       await crop.save();
       res.json({ message: 'Crop status updated', crop });
     } else {
       res.status(404).json({ message: 'Crop not found' });
     }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// --- NEW OVERHAUL: ADMIN CAN FORCE UPDATE CROP PRICE AND STATUS ---
+export const forceUpdateCrop = async (req, res) => {
+  try {
+    const { status, price } = req.body;
+    const crop = await Crop.findById(req.params.id);
+    if (!crop) return res.status(404).json({ message: 'Crop not found' });
+
+    if (status) crop.status = status;
+    if (price !== undefined) crop.price = price;
+    
+    await crop.save();
+
+    // The user requested that if Admin forces "Sold", all pending bookings for this crop get rejected automatically.
+    if (status === 'sold') {
+       await AdvanceBooking.updateMany(
+         { crop_id: crop._id, status: { $in: ['pending', 'negotiating', 'accepted', 'buyer_confirmed'] } },
+         { $set: { status: 'rejected', admin_message: 'System auto-rejected because crop was forcefully marked as Sold by Admin.' } }
+       );
+    }
+
+    res.json({ message: 'Crop force updated successfully', crop });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

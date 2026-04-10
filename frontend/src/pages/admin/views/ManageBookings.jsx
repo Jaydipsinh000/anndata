@@ -145,15 +145,28 @@ function ManageBookings() {
               </div>
             </div>
 
-            {/* Negotiation Log */}
+            {/* Negotiation Log (Chat View) */}
             {book.negotiation_log && book.negotiation_log.length > 0 && (
-              <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3 mb-4 max-h-32 overflow-y-auto">
-                <p className="text-[10px] font-black text-indigo-800 uppercase tracking-widest mb-2">Negotiation Trail</p>
-                {book.negotiation_log.map((entry, i) => (
-                  <div key={i} className="text-[11px] py-1 border-b border-indigo-100/50 last:border-0">
-                    <span className={`font-black uppercase ${entry.by === 'admin' ? 'text-indigo-700' : 'text-green-700'}`}>{entry.by}</span>: ₹{entry.price} × {entry.qty} — <span className="text-gray-600">{entry.message}</span>
-                  </div>
-                ))}
+              <div className="bg-gray-50 border border-gray-200 rounded-[1.5rem] p-4 mb-4 flex flex-col gap-3 max-h-48 overflow-y-auto custom-scrollbar shadow-inner">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center sticky top-0 bg-gray-50/90 py-1 z-10 backdrop-blur-sm rounded-lg">Negotiation History</p>
+                {book.negotiation_log.map((entry, i) => {
+                  const isAdmin = entry.by === 'admin';
+                  return (
+                    <div key={i} className={`flex flex-col w-3/4 ${isAdmin ? 'self-end items-end' : 'self-start items-start'}`}>
+                       <span className="text-[10px] font-black uppercase text-gray-400 mb-1 px-1 tracking-widest">
+                         {isAdmin ? 'System Admin' : 'Buyer'} &bull; {new Date(entry.date || Date.now()).toLocaleDateString()}
+                       </span>
+                       <div className={`p-3 rounded-2xl text-xs font-medium shadow-sm border ${isAdmin ? 'bg-[#006400] text-white border-[#004d00] rounded-tr-sm' : 'bg-white text-gray-800 border-gray-200 rounded-tl-sm'}`}>
+                          <p className="font-black text-sm mb-1">
+                             <span className={isAdmin ? 'text-green-200' : 'text-gray-400'}>₹</span>{entry.price} 
+                             <span className={isAdmin ? 'text-green-300 mx-1' : 'text-gray-300 mx-1'}>×</span> 
+                             {entry.qty} units
+                          </p>
+                          <p className={`italic ${isAdmin ? 'text-green-50' : 'text-gray-600'}`}>"{entry.message || 'No additional note'}"</p>
+                       </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
 

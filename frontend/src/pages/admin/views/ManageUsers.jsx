@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { UserDetailModal } from '../components/AdminComponents';
-import { Search, Users as UsersIcon, ShieldCheck, UserX, UserMinus, FileText } from 'lucide-react';
+import { UserDetailModal, ActionButton } from '../components/AdminComponents';
+import { Search, Users as UsersIcon, ShieldCheck, UserX, UserMinus, FileText, Star, ShieldAlert } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 function ManageUsers({ users, lands, partnerships, marketplaceItems, updateStatus }) {
   const [inspectingUser, setInspectingUser] = useState(null);
@@ -48,7 +49,7 @@ function ManageUsers({ users, lands, partnerships, marketplaceItems, updateStatu
             <p className="text-3xl font-black text-orange-700">{stats.buyers}</p>
          </div>
          <div className="bg-green-50/50 p-5 rounded-[2rem] border border-green-100 shadow-sm flex flex-col justify-center items-center text-center">
-            <p className="text-[10px] font-black text-green-500 uppercase tracking-widest mb-1">Verified Users</p>
+            <p className="text-[10px] font-black text-green-500 uppercase tracking-widest mb-1">Verified Badges</p>
             <p className="text-3xl font-black text-green-700">{stats.verified}</p>
          </div>
          <div className="bg-red-50/50 p-5 rounded-[2rem] border border-red-100 shadow-sm flex flex-col justify-center items-center text-center">
@@ -101,7 +102,11 @@ function ManageUsers({ users, lands, partnerships, marketplaceItems, updateStatu
                   <td className="p-5">
                      {u.trust_badge === 'verified' ? (
                        <span className="flex items-center gap-1 w-max px-3 py-1 bg-green-50 border border-green-200 text-green-700 text-[10px] font-black uppercase tracking-widest rounded-lg shadow-sm">
-                         <ShieldCheck size={14}/> Verified
+                         <ShieldCheck size={14}/> Verified Farmer
+                       </span>
+                     ) : (u.trust_badge === 'trusted' ? (
+                       <span className="flex items-center gap-1 w-max px-3 py-1 bg-yellow-50 border border-yellow-200 text-yellow-700 text-[10px] font-black uppercase tracking-widest rounded-lg shadow-sm">
+                         <Star size={14} fill="currentColor" /> Trusted Buyer
                        </span>
                      ) : (u.trust_badge === 'suspended' ? (
                        <span className="flex items-center gap-1 w-max px-3 py-1 bg-red-50 border border-red-200 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-lg">
@@ -109,16 +114,40 @@ function ManageUsers({ users, lands, partnerships, marketplaceItems, updateStatu
                        </span>
                      ) : (
                        <span className="flex items-center gap-1 w-max px-3 py-1 bg-gray-100 border border-gray-200 text-gray-500 text-[10px] font-black uppercase tracking-widest rounded-lg">
-                         Unverified
+                         No Badge
                        </span>
-                     ))}
+                     )))}
                   </td>
                   <td className="p-5">
                     <span className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${u.status === 'suspended' ? 'text-red-500' : (u.status === 'blocked' ? 'text-gray-500' : 'text-green-600')}`}>
                       {u.status === 'approved' ? 'Active' : u.status}
                     </span>
                   </td>
-                  <td className="p-5 text-right">
+                  <td className="p-5 text-right space-x-2 flex justify-end">
+                    <button 
+                      title="Assign Trust Badge"
+                      onClick={async () => {
+                         const { value: badge } = await Swal.fire({
+                            title: `Assign Badges for ${u.name}`,
+                            input: 'select',
+                            inputOptions: {
+                              verified: 'Verified Farmer ✅',
+                              trusted: 'Trusted Buyer ⭐',
+                              suspended: 'Bad Standing / Suspended 🚨',
+                              none: 'Remove All Badges ❌'
+                            },
+                            inputPlaceholder: 'Select a badge',
+                            showCancelButton: true,
+                            confirmButtonColor: '#006400'
+                         });
+                         if(badge) updateStatus('users', u._id, undefined, { trust_badge: badge === 'none' ? null : badge });
+                      }}
+                      className="inline-flex items-center justify-center p-2 rounded-xl text-yellow-600 bg-yellow-50 hover:bg-yellow-100 transition-colors border border-yellow-200"
+                    >
+                       <ShieldAlert size={16} />
+                    </button>
+                    <ActionButton type="approve" disabled={u.status === 'approved'} onClick={() => updateStatus('users', u._id, 'approved')} />
+                    <ActionButton type="block" disabled={u.status === 'blocked'} onClick={() => updateStatus('users', u._id, 'blocked')} />
                     <button onClick={() => setInspectingUser(u)} className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-800 font-bold text-xs px-4 py-2 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm active:scale-95">
                       <FileText size={14} className="text-indigo-500" /> View Comprehensive Profile
                     </button>

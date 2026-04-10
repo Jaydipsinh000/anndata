@@ -96,7 +96,7 @@ function AdminPanel() {
             {activeTab === 'lands' && <ManageLands lands={lands} updateStatus={updateStatus} />}
             {activeTab === 'partnerships' && <ManagePartnerships partnerships={partnerships} onRefresh={() => fetchData(JSON.parse(localStorage.getItem('userInfo')).token)} />}
             {activeTab === 'users' && <ManageUsers users={users} lands={lands} partnerships={partnerships} marketplaceItems={marketplaceItems} updateStatus={updateStatus} />}
-            {activeTab === 'crops' && <ManageCrops crops={crops} updateStatus={updateStatus} />}
+            {activeTab === 'crops' && <ManageCrops crops={crops} updateStatus={updateStatus} onRefresh={() => fetchData(JSON.parse(localStorage.getItem('userInfo')).token)} />}
             {activeTab === 'tools' && <ManageTools tools={tools} updateStatus={updateStatus} />}
             {activeTab === 'marketplace' && <ManageMarketplace items={marketplaceItems} updateStatus={updateStatus} />}
             {activeTab === 'bookings' && <ManageBookings />}

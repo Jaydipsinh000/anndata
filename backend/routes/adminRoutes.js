@@ -1,7 +1,7 @@
 import express from 'express';
 import { 
   getDashboardStats, getUsers, updateUserStatus, 
-  getAdminCrops, updateCropStatus,
+  getAdminCrops, updateCropStatus, forceUpdateCrop,
   getAdminLands, updateLandStatus,
   getAdminTools, updateToolStatus,
   getAdminMarketplace, updateMarketplaceStatus
@@ -16,6 +16,7 @@ router.patch('/users/:id/status', protect, admin, updateUserStatus);
 
 router.get('/crops', protect, admin, getAdminCrops);
 router.patch('/crops/:id/status', protect, admin, updateCropStatus);
+router.patch('/crops/:id/force', protect, admin, forceUpdateCrop);
 
 router.get('/lands', protect, admin, getAdminLands);
 router.patch('/lands/:id/status', protect, admin, updateLandStatus);

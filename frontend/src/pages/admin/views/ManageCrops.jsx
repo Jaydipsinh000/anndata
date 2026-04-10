@@ -1,10 +1,58 @@
 import React, { useState, useMemo } from 'react';
 import { ActionButton } from '../components/AdminComponents';
-import { Search, Sprout, Wheat, Layers, Clock, CheckCircle2, Package } from 'lucide-react';
+import { Search, Sprout, Wheat, Layers, Clock, CheckCircle2, Package, Edit2 } from 'lucide-react';
+import Swal from 'sweetalert2';
 
-function ManageCrops({ crops, updateStatus }) {
+function ManageCrops({ crops, updateStatus, onRefresh }) {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
+
+  const handleForceUpdate = async (crop) => {
+    const { value: formValues } = await Swal.fire({
+      title: `Force Update: ${crop.crop_name}`,
+      html: `
+        <label class="block text-left text-sm font-bold text-gray-700 mb-1">Status</label>
+        <select id="swal-status" class="swal2-input bg-gray-50 border border-gray-300 w-[90%] mx-auto mb-4 text-sm font-bold p-3 rounded-xl">
+           <option value="pending" ${crop.status === 'pending' ? 'selected' : ''}>Pending Verification</option>
+           <option value="approved" ${crop.status === 'approved' ? 'selected' : ''}>Open / Approved</option>
+           <option value="booked" ${crop.status === 'booked' ? 'selected' : ''}>Booked (Under Contract)</option>
+           <option value="sold" ${crop.status === 'sold' ? 'selected' : ''}>Sold (Force Close Deals)</option>
+           <option value="rejected" ${crop.status === 'rejected' ? 'selected' : ''}>Rejected / Removed</option>
+        </select>
+        <label class="block text-left text-sm font-bold text-gray-700 mb-1 mt-2">Force Price Change (₹)</label>
+        <input id="swal-price" type="number" class="swal2-input w-[90%] mx-auto font-black text-xl text-green-700" value="${crop.price}">
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonColor: '#ff9800',
+      confirmButtonText: 'Warning: Force Execute',
+      preConfirm: () => {
+        return {
+          status: document.getElementById('swal-status').value,
+          price: document.getElementById('swal-price').value
+        }
+      }
+    });
+
+    if (formValues) {
+      try {
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        await fetch(`/api/admin/crops/${crop._id}/force`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
+          body: JSON.stringify({ status: formValues.status, price: Number(formValues.price) })
+        });
+        Swal.fire({
+          icon: 'success', title: 'Force Executed',
+          text: formValues.status === 'sold' ? 'Crop marked as sold. Sub-system auto-rejected all pending bids.' : 'Crop status overridden successfully.',
+          timer: 3000, showConfirmButton: false
+        });
+        if(onRefresh) onRefresh();
+      } catch (e) {
+        Swal.fire('Error', e.message, 'error');
+      }
+    }
+  };
 
   const stats = useMemo(() => {
     let growing = 0, ready = 0, pending = 0, approved = 0;
@@ -110,13 +158,16 @@ function ManageCrops({ crops, updateStatus }) {
                     )}
                   </td>
                   <td className="p-4">
-                    <span className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border ${crop.status === 'pending' ? 'bg-orange-50 text-orange-600 border-orange-200' : (crop.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-green-50 text-green-700 border-green-200')}`}>
+                    <span className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border ${['pending', 'rejected'].includes(crop.status) ? 'bg-orange-50 text-orange-600 border-orange-200' : (crop.status === 'sold' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-green-50 text-green-700 border-green-200')}`}>
                       {crop.status}
                     </span>
                   </td>
                   <td className="p-4 flex gap-2 justify-end">
-                    <ActionButton type="approve" disabled={crop.status === 'approved'} onClick={() => updateStatus('crops', crop._id, 'approved')} />
-                    <ActionButton type="reject" disabled={crop.status === 'rejected'} onClick={() => updateStatus('crops', crop._id, 'rejected')} />
+                    <button onClick={() => handleForceUpdate(crop)} className="inline-flex items-center gap-1 bg-yellow-50 text-yellow-700 border border-yellow-200 font-bold text-[10px] uppercase tracking-widest px-3 py-2 rounded-xl hover:bg-yellow-100 transition-all active:scale-95">
+                      <Edit2 size={12} /> Force Control
+                    </button>
+                    <ActionButton type="approve" disabled={['approved', 'sold'].includes(crop.status)} onClick={() => updateStatus('crops', crop._id, 'approved')} />
+                    <ActionButton type="reject" disabled={['rejected', 'sold'].includes(crop.status)} onClick={() => updateStatus('crops', crop._id, 'rejected')} />
                   </td>
                 </tr>
               ))}
