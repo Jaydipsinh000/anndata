@@ -48,6 +48,15 @@ function Crops() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (cropType === 'growing' && form.expected_harvest_date) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const harvestDate = new Date(form.expected_harvest_date);
+      if (harvestDate < today) {
+        alert("Harvest date must be in the future");
+        return;
+      }
+    }
     try {
       const body = { ...form, type: cropType };
       const res = await fetch('/api/crops', {
@@ -104,11 +113,11 @@ function Crops() {
         )}
 
         {/* Growing Crops Section */}
-        {isFarmer && growingCrops.length > 0 && (
+        {growingCrops.filter(c => isFarmer || c.status === 'approved').length > 0 && (
           <div className="mb-10">
-            <h3 className="text-xl font-black text-gray-800 mb-4 flex items-center gap-2"><Sprout className="text-green-600" size={22}/> Growing Crops (In Field)</h3>
+            <h3 className="text-xl font-black text-gray-800 mb-4 flex items-center gap-2"><Sprout className="text-green-600" size={22}/> Future Crops Available for Booking</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {growingCrops.map(crop => (
+              {growingCrops.filter(c => isFarmer || c.status === 'approved').map(crop => (
                 <div key={crop._id} className="bg-white rounded-[2rem] p-6 shadow-sm border border-green-100 hover:shadow-md transition-all">
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -125,24 +134,36 @@ function Crops() {
                   </div>
                   {crop.advance_booking_enabled && <p className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl w-max mb-3">ADVANCE BOOKING OPEN</p>}
 
-                  {/* Harvest Button */}
-                  {crop.status === 'approved' && (
-                    harvestingId === crop._id ? (
-                      <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 space-y-3 animate-[fadeIn_0.3s_ease-out]">
-                        <p className="text-xs font-black text-orange-800 uppercase tracking-widest">Mark as Harvested</p>
-                        <input type="number" placeholder="Final Qty Harvested" value={harvestData.final_qty} onChange={e => setHarvestData({...harvestData, final_qty: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none" />
-                        <select value={harvestData.quality_grade} onChange={e => setHarvestData({...harvestData, quality_grade: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none">
-                          <option value="A">Grade A (Premium)</option><option value="B">Grade B (Standard)</option><option value="C">Grade C (Low)</option>
-                        </select>
-                        <input type="number" placeholder="Selling Price ₹/unit" value={harvestData.selling_price} onChange={e => setHarvestData({...harvestData, selling_price: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none" />
-                        <div className="flex gap-2">
-                          <button onClick={() => handleHarvest(crop._id)} className="flex-1 bg-orange-600 text-white font-bold py-3 rounded-xl text-sm hover:bg-orange-700 transition-colors">Confirm Harvest</button>
-                          <button onClick={() => setHarvestingId(null)} className="px-4 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl text-sm">Cancel</button>
+                  {/* Harvest Button for Farmer / Booking for Buyer */}
+                  {isFarmer ? (
+                    crop.status === 'approved' && (
+                      harvestingId === crop._id ? (
+                        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 space-y-3 animate-[fadeIn_0.3s_ease-out]">
+                          <p className="text-xs font-black text-orange-800 uppercase tracking-widest">Mark as Harvested</p>
+                          <input type="number" placeholder="Final Qty Harvested" value={harvestData.final_qty} onChange={e => setHarvestData({...harvestData, final_qty: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none" />
+                          <select value={harvestData.quality_grade} onChange={e => setHarvestData({...harvestData, quality_grade: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none">
+                            <option value="A">Grade A (Premium)</option><option value="B">Grade B (Standard)</option><option value="C">Grade C (Low)</option>
+                          </select>
+                          <input type="number" placeholder="Selling Price ₹/unit" value={harvestData.selling_price} onChange={e => setHarvestData({...harvestData, selling_price: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none" />
+                          <div className="flex gap-2">
+                            <button onClick={() => handleHarvest(crop._id)} className="flex-1 bg-orange-600 text-white font-bold py-3 rounded-xl text-sm hover:bg-orange-700 transition-colors">Confirm Harvest</button>
+                            <button onClick={() => setHarvestingId(null)} className="px-4 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl text-sm">Cancel</button>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        <button onClick={() => setHarvestingId(crop._id)} className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl text-sm hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 shadow-md shadow-orange-500/20">
+                          <Tractor size={16}/> Mark as Harvested
+                        </button>
+                      )
+                    )
+                  ) : (
+                    crop.reserved_qty >= crop.expected_yield_qty ? (
+                      <button disabled className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-xl text-sm cursor-not-allowed border border-gray-300">
+                        ⏳ Already Booked
+                      </button>
                     ) : (
-                      <button onClick={() => setHarvestingId(crop._id)} className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl text-sm hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 shadow-md shadow-orange-500/20">
-                        <Tractor size={16}/> Mark as Harvested
+                      <button onClick={() => navigate('/bookings')} className="w-full bg-[#006400] text-white font-bold py-3 rounded-xl hover:bg-[#004d00] transition-colors shadow-md flex items-center justify-center gap-2 mt-2">
+                        📦 Book Now
                       </button>
                     )
                   )}
@@ -182,9 +203,14 @@ function Crops() {
                   </div>
                   {crop.reserved_qty > 0 && <p className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl w-max mb-3">📦 {crop.reserved_qty} {crop.expected_yield_unit || 'kg'} Reserved</p>}
                   {!isFarmer && crop.user_id && (
-                    <div className="pt-4 border-t border-gray-100 flex items-center gap-2 text-sm text-gray-500 font-medium">
-                      <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-black text-gray-500">{(crop.user_id?.name || 'F')[0]}</div>
-                      {crop.user_id?.name || 'Farmer'}
+                    <div className="pt-4 border-t border-gray-100 flex flex-col gap-3 mt-auto">
+                      <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
+                        <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-black text-gray-500">{(crop.user_id?.name || 'F')[0]}</div>
+                        {crop.user_id?.name || 'Farmer'}
+                      </div>
+                      <button onClick={() => navigate('/marketplace')} className="w-full bg-[#006400] text-white font-bold py-3 rounded-xl hover:bg-[#004d00] transition-colors shadow-md flex items-center justify-center gap-2 text-sm">
+                        🛒 Buy Now
+                      </button>
                     </div>
                   )}
                 </div>
