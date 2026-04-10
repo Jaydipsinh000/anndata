@@ -101,7 +101,6 @@ function App() {
         <Route path="/register" element={<Register />} />
         
         {/* Protected Routes - All logged in users */}
-        <Route path="/crops" element={<ProtectedRoute><Crops /></ProtectedRoute>} />
         <Route path="/marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
         <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
@@ -110,6 +109,7 @@ function App() {
         <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'superadmin']}><AdminPanel /></ProtectedRoute>} />
         
         {/* Protected Routes - Farmer only */}
+        <Route path="/crops" element={<ProtectedRoute allowedRoles={['farmer']}><Crops /></ProtectedRoute>} />
         <Route path="/lands" element={<ProtectedRoute allowedRoles={['farmer']}><LandManagement /></ProtectedRoute>} />
         <Route path="/tools" element={<ProtectedRoute allowedRoles={['farmer']}><Tools /></ProtectedRoute>} />
         <Route path="/partnerships" element={<ProtectedRoute allowedRoles={['farmer']}><Partnerships /></ProtectedRoute>} />

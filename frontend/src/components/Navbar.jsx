@@ -31,29 +31,28 @@ function Navbar() {
 
   const navLinks = isLoggedIn
     ? [
-        { name: t('nav.home'), path: '/home' },
+        { name: t('nav.home', 'Home'), path: '/home' },
         ...(userRole === 'admin' || userRole === 'superadmin' ? [{ name: 'Admin Panel', path: '/admin' }] : []),
         ...(userRole === 'farmer' ? [
-            { name: t('nav.lands'), path: '/lands' },
-            { name: t('nav.crops'), path: '/crops' },
-            { name: t('nav.partnerships'), path: '/partnerships' },
+            { name: t('nav.lands', 'Lands'), path: '/lands' },
+            { name: t('nav.crops', 'My Crops'), path: '/crops' },
+            { name: t('nav.partnerships', 'Partnerships'), path: '/partnerships' },
             { name: t('nav.bookings', 'My Bookings'), path: '/bookings' },
-            { name: t('nav.tools'), path: '/tools' },
-            { name: t('nav.marketplace'), path: '/marketplace' }
+            { name: t('nav.tools', 'Tools'), path: '/tools' },
+            { name: t('nav.marketplace', 'Marketplace'), path: '/marketplace' }
         ] : []),
         ...(userRole === 'buyer' ? [
-            { name: t('nav.crops_booking', 'Advance Booking'), path: '/crops' },
             { name: t('nav.bookings', 'My Bookings'), path: '/bookings' },
             { name: t('nav.marketplace', 'Marketplace'), path: '/marketplace' }
         ] : []),
         ...(userRole === 'worker' ? [
             { name: t('nav.tools', 'Tool Rentals'), path: '/tools' }
         ] : []),
-        { name: t('nav.profile'), path: '/profile' }
+        { name: t('nav.profile', 'Profile'), path: '/profile' }
       ]
     : [
-        { name: t('nav.home'), path: '/home' },
-        { name: t('nav.crops_public', 'Explore Crops'), path: '/crops' }
+        { name: t('nav.home', 'Home'), path: '/home' },
+        { name: t('nav.marketplace', 'Marketplace'), path: '/marketplace' }
       ];
 
   return (
