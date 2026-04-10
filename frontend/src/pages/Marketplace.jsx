@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { Store, ShoppingCart, Sprout, Wheat, MapPin, Tag, Package, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 function Marketplace() {
   const [crops, setCrops] = useState([]);
@@ -52,7 +53,7 @@ function Marketplace() {
   const handleBuyNow = (cropId) => {
     if (!userInfo) return navigate('/login');
     // Implement direct checkout logic or redirect
-    alert("Checkout module pending connection");
+    toast.error("Checkout module pending connection");
   };
 
   const filteredCrops = crops.filter(c => {

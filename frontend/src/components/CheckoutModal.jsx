@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, CreditCard, ShoppingBag, ShieldCheck } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 function CheckoutModal({ item, onClose }) {
   const { t } = useTranslation();
@@ -53,11 +54,11 @@ function CheckoutModal({ item, onClose }) {
       if (res.ok) {
         setSuccess(true);
       } else {
-        alert('Checkout failed. Please try again.');
+        toast.error('Checkout failed. Please try again.');
         setLoading(false);
       }
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
       setLoading(false);
     }
   };

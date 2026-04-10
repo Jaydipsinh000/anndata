@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Target, Leaf, Sprout, Tractor, IndianRupee, MapPin, Loader2, CheckCircle2 } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 function AdminPartnershipCard({ p, onRefresh }) {
   const [taskTitle, setTaskTitle] = useState('');
@@ -32,9 +33,25 @@ function AdminPartnershipCard({ p, onRefresh }) {
   };
 
   const setCropDetails = async () => {
-    const crop = window.prompt('Assign crop for this operation:', p.assigned_crop);
-    if(crop) {
-      const yieldAmt = window.prompt('Expected Yield in Tons (approx):', p.expected_yield_tons || 0);
+    const { value: formValues } = await Swal.fire({
+      title: 'Assign Crop Details',
+      html:
+        `<input id="swal-input1" class="swal2-input" placeholder="Crop Name" value="${p.assigned_crop || ''}">` +
+        `<input id="swal-input2" class="swal2-input" type="number" placeholder="Expected Yield (Tons)" value="${p.expected_yield_tons || ''}">`,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonColor: '#006400',
+      preConfirm: () => {
+        return [
+          document.getElementById('swal-input1').value,
+          document.getElementById('swal-input2').value
+        ]
+      }
+    });
+
+    if (formValues && formValues[0]) {
+      const crop = formValues[0];
+      const yieldAmt = formValues[1];
       await fetch(`/api/partnerships/${p._id}/basic`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },

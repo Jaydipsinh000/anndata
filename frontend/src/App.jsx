@@ -91,32 +91,43 @@ function LanguageSelector() {
   );
 }
 
+import { Toaster } from 'react-hot-toast';
+
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LanguageSelector />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        
-        {/* Protected Routes - All logged in users */}
-        <Route path="/marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
-        <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        
-        {/* Protected Routes - Admin only */}
-        <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'superadmin']}><AdminPanel /></ProtectedRoute>} />
-        
-        {/* Protected Routes - Farmer only */}
-        <Route path="/crops" element={<ProtectedRoute allowedRoles={['farmer']}><Crops /></ProtectedRoute>} />
-        <Route path="/lands" element={<ProtectedRoute allowedRoles={['farmer']}><LandManagement /></ProtectedRoute>} />
-        <Route path="/tools" element={<ProtectedRoute allowedRoles={['farmer']}><Tools /></ProtectedRoute>} />
-        <Route path="/partnerships" element={<ProtectedRoute allowedRoles={['farmer']}><Partnerships /></ProtectedRoute>} />
+    <>
+      <Toaster position="top-right" 
+               toastOptions={{
+                 style: { background: '#333', color: '#fff', borderRadius: '1rem', fontWeight: 'bold' },
+                 success: { style: { background: '#006400' } },
+                 error: { style: { background: '#ef4444' } }
+               }} 
+      />
+      <Router>
+        <Routes>
+          <Route path="/" element={<LanguageSelector />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          
+          {/* Protected Routes - All logged in users */}
+          <Route path="/marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
+          <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          
+          {/* Protected Routes - Admin only */}
+          <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'superadmin']}><AdminPanel /></ProtectedRoute>} />
+          
+          {/* Protected Routes - Farmer only */}
+          <Route path="/crops" element={<ProtectedRoute allowedRoles={['farmer']}><Crops /></ProtectedRoute>} />
+          <Route path="/lands" element={<ProtectedRoute allowedRoles={['farmer']}><LandManagement /></ProtectedRoute>} />
+          <Route path="/tools" element={<ProtectedRoute allowedRoles={['farmer']}><Tools /></ProtectedRoute>} />
+          <Route path="/partnerships" element={<ProtectedRoute allowedRoles={['farmer']}><Partnerships /></ProtectedRoute>} />
 
-        <Route path="/*" element={<Home />} />
-      </Routes>
-    </Router>
+          <Route path="/*" element={<Home />} />
+        </Routes>
+      </Router>
+    </>
   );
 }
 

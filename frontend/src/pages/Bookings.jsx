@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import toast from 'react-hot-toast';
 import { Loader2, Mail, CheckCircle, XCircle, Clock, Send, ShieldCheck, User, IndianRupee, Package, MessageSquare, Sprout, Wheat } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -68,9 +69,10 @@ function Bookings() {
         setBookingModal(null);
         setBidForm({ requested_qty: '', offered_price: '', requirements: '' });
         fetchBookings();
+        toast.success("Booking placed successfully!");
       } else {
         const err = await res.json();
-        alert(err.message || 'Booking failed');
+        toast.error(err.message || 'Booking failed');
       }
     } catch(e) { console.error(e); }
     finally { setSubmitting(false); }

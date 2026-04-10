@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Truck, CheckCircle, XCircle, MessageSquare, IndianRupee, Package, Search, Loader2, Send } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 function ManageBookings() {
   const [bookings, setBookings] = useState([]);
@@ -20,7 +21,19 @@ function ManageBookings() {
 
   const handleUpdateStatus = async (id, status, message) => {
     try {
-      const msg = message || prompt('Optional admin note:');
+      let msg = message;
+      if (msg === undefined) {
+         const { value: text } = await Swal.fire({
+           title: 'Admin Note',
+           input: 'text',
+           inputPlaceholder: 'Optional admin note...',
+           showCancelButton: true,
+           confirmButtonColor: '#006400'
+         });
+         if (text === undefined) return; // User cancelled
+         msg = text;
+      }
+
       await fetch(`/api/bookings/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },

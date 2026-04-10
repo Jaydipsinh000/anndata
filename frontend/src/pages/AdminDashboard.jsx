@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Wheat, Activity, ShoppingBag, CheckCircle, XCircle, Shield, Map, Hammer, Store, Edit3, Target, Plus } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import Swal from 'sweetalert2';
 
 function LandReviewModal({ isOpen, onClose, land, onSubmit }) {
   const [message, setMessage] = useState('');
@@ -305,7 +306,14 @@ function AdminPartnershipCard({ p, onRefresh }) {
   };
 
   const setCrop = async () => {
-    const crop = window.prompt('Assign a crop for this operation:', p.assigned_crop);
+    const { value: crop } = await Swal.fire({
+      title: 'Assign Crop',
+      input: 'text',
+      inputPlaceholder: 'Enter a crop name for this operation...',
+      inputValue: p.assigned_crop || '',
+      showCancelButton: true,
+      confirmButtonColor: '#006400'
+    });
     if(crop) {
       await fetch(`/api/partnerships/${p._id}/basic`, {
         method: 'PATCH',
