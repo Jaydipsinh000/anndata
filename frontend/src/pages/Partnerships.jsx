@@ -58,10 +58,6 @@ function Partnerships() {
     } catch(err) { console.error(err); }
   };
 
-  if(loading) return <div className="min-h-screen bg-[#f8fafc]"><Navbar /><div className="text-center py-20 text-xl font-bold">Loading Enterprise Dashboard...</div></div>;
-  
-  if(error) return <div className="min-h-screen bg-[#f8fafc]"><Navbar /><div className="text-center py-20"><p className="text-xl font-bold text-red-600 mb-2">Connection Error</p><p className="text-gray-500">{error}</p><button onClick={fetchPartnerships} className="mt-4 bg-orange-500 text-white px-6 py-2 rounded-xl font-bold">Retry</button></div></div>;
-
   // --- Compute ERP Analytics ---
   const filteredPartnerships = useMemo(() => {
     if (activeTab === 'All') return partnerships;
@@ -86,6 +82,10 @@ function Partnerships() {
     const overallProgress = totalTasksGlobal === 0 ? 0 : Math.round((completedTasksGlobal / totalTasksGlobal) * 100);
     return { totalInvested, globalActive, overallProgress };
   }, [partnerships]);
+
+  if(loading) return <div className="min-h-screen bg-[#f8fafc]"><Navbar /><div className="text-center py-20 text-xl font-bold">Loading Enterprise Dashboard...</div></div>;
+  
+  if(error) return <div className="min-h-screen bg-[#f8fafc]"><Navbar /><div className="text-center py-20"><p className="text-xl font-bold text-red-600 mb-2">Connection Error</p><p className="text-gray-500">{error}</p><button onClick={fetchPartnerships} className="mt-4 bg-orange-500 text-white px-6 py-2 rounded-xl font-bold">Retry</button></div></div>;
 
   return (
     <div className="min-h-screen bg-[#f8fafc] font-sans pb-20">
