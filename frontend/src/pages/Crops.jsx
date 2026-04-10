@@ -1,208 +1,279 @@
 import { useState, useEffect } from 'react';
-import { Sprout, Map, Scale, IndianRupee, User, Mail, Loader2, Wheat, XCircle } from 'lucide-react';
+import { Sprout, Wheat, Plus, XCircle, Loader2, Tractor, MapPin, IndianRupee, Calendar, BarChart3, Package, ShieldCheck, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 
 function Crops() {
   const [crops, setCrops] = useState([]);
+  const [myLands, setMyLands] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [eoiCrop, setEoiCrop] = useState(null);
-  const [successMsg, setSuccessMsg] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [requirements, setRequirements] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [harvestingId, setHarvestingId] = useState(null);
+  const [harvestData, setHarvestData] = useState({ final_qty: '', quality_grade: 'A', selling_price: '' });
 
   const navigate = useNavigate();
-  const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || 'null');
+  const isFarmer = userInfo?.role === 'farmer';
 
-  useEffect(() => {
-    fetch('/api/crops')
-      .then(res => res.json())
-      .then(data => {
-        setCrops(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
+  // Add Crop Form State
+  const [cropType, setCropType] = useState('ready');
+  const [form, setForm] = useState({
+    crop_name: '', land_id: '', area_value: '', area_unit: 'Bigha', season: 'Monsoon', price: '',
+    sowing_date: '', expected_harvest_date: '', expected_yield_qty: '', expected_yield_unit: 'kg', advance_booking_enabled: false,
+    available_qty: '', quality_grade: 'A'
+  });
+
+  const fetchCrops = async () => {
+    try {
+      const endpoint = isFarmer ? '/api/crops/mycrops' : '/api/crops';
+      const headers = userInfo ? { Authorization: `Bearer ${userInfo.token}` } : {};
+      const res = await fetch(endpoint, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setCrops(Array.isArray(data) ? data : []);
+      }
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
+  };
+
+  const fetchMyLands = async () => {
+    if (!isFarmer) return;
+    try {
+      const res = await fetch('/api/lands/my', { headers: { Authorization: `Bearer ${userInfo.token}` } });
+      if (res.ok) { setMyLands(await res.json()); }
+    } catch (err) { console.error(err); }
+  };
+
+  useEffect(() => { fetchCrops(); fetchMyLands(); }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const body = { ...form, type: cropType };
+      const res = await fetch('/api/crops', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
+        body: JSON.stringify(body)
       });
-  }, []);
+      if (res.ok) {
+        setShowAddForm(false);
+        setForm({ crop_name: '', land_id: '', area_value: '', area_unit: 'Bigha', season: 'Monsoon', price: '', sowing_date: '', expected_harvest_date: '', expected_yield_qty: '', expected_yield_unit: 'kg', advance_booking_enabled: false, available_qty: '', quality_grade: 'A' });
+        fetchCrops();
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  const handleHarvest = async (cropId) => {
+    try {
+      await fetch(`/api/crops/${cropId}/harvest`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
+        body: JSON.stringify(harvestData)
+      });
+      setHarvestingId(null);
+      setHarvestData({ final_qty: '', quality_grade: 'A', selling_price: '' });
+      fetchCrops();
+    } catch (err) { console.error(err); }
+  };
+
+  if (loading) return <div className="min-h-screen bg-[#f8fafc]"><Navbar /><div className="text-center py-20 text-xl font-bold animate-pulse">Loading Crop Data...</div></div>;
+
+  const growingCrops = crops.filter(c => c.type === 'growing');
+  const readyCrops = crops.filter(c => c.type === 'ready' || !c.type);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-sans selection:bg-[#006400] selection:text-white pb-20">
+    <div className="min-h-screen bg-[#f8fafc] font-sans pb-20">
       <Navbar />
-      
-      {/* Header section with gradient background */}
-      <div className="bg-gradient-to-r from-[#004d00] to-[#2ecc71] py-16 px-4 mb-12 relative overflow-hidden">
+
+      {/* Hero */}
+      <div className="bg-gradient-to-r from-[#004d00] to-[#2ecc71] py-16 px-4 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/images/background.png')] bg-cover mix-blend-overlay opacity-20"></div>
-        <div className="max-w-6xl mx-auto relative z-10 text-center">
-          <h2 className="text-white text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-md">
-            Listed Crops
-          </h2>
-          <p className="text-green-100 text-lg md:text-xl max-w-2xl mx-auto font-medium">
-            Discover locally grown crops straight from our trusted farmers.
-          </p>
-        </div>
+        <h2 className="text-white text-4xl md:text-5xl font-extrabold mb-2 relative z-10 drop-shadow-md">
+          {isFarmer ? 'My Crop Portfolio' : 'Browse Crops'}
+        </h2>
+        <p className="text-green-100 text-lg relative z-10">{isFarmer ? 'Track your growing and ready-to-sell crops.' : 'Discover locally produced crops from our farmer network.'}</p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-[#006400]">
-            <Loader2 className="w-12 h-12 animate-spin mb-4" />
-            <p className="font-bold text-xl">Loading crops...</p>
-          </div>
-        ) : crops.filter(c => c.status === 'approved').length === 0 ? (
-          <div className="glass-effect rounded-[2rem] p-16 text-center shadow-sm max-w-2xl mx-auto border border-gray-100 mt-10">
-            <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Wheat className="w-12 h-12 text-[#2ecc71]" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 -mt-8 relative z-10">
+
+        {/* Add Crop Button (Farmer Only) */}
+        {isFarmer && (
+          <button onClick={() => setShowAddForm(true)} className="mb-6 flex items-center gap-2 bg-white border-2 border-dashed border-green-300 text-[#006400] font-bold px-6 py-4 rounded-2xl hover:bg-green-50 transition-all w-full justify-center text-lg shadow-sm">
+            <Plus size={24} /> List New Crop
+          </button>
+        )}
+
+        {/* Growing Crops Section */}
+        {isFarmer && growingCrops.length > 0 && (
+          <div className="mb-10">
+            <h3 className="text-xl font-black text-gray-800 mb-4 flex items-center gap-2"><Sprout className="text-green-600" size={22}/> Growing Crops (In Field)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {growingCrops.map(crop => (
+                <div key={crop._id} className="bg-white rounded-[2rem] p-6 shadow-sm border border-green-100 hover:shadow-md transition-all">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-green-700 bg-green-100 px-3 py-1 rounded-xl">{crop.status}</span>
+                      <h4 className="text-xl font-black text-gray-800 mt-2 capitalize">{crop.crop_name}</h4>
+                    </div>
+                    <div className="bg-green-50 p-2 rounded-xl"><Sprout className="text-green-600" size={20}/></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Area</p><p className="font-bold text-gray-800">{crop.area_value} {crop.area_unit}</p></div>
+                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Expected Yield</p><p className="font-bold text-gray-800">{crop.expected_yield_qty} {crop.expected_yield_unit}</p></div>
+                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Harvest Date</p><p className="font-bold text-gray-800">{crop.expected_harvest_date ? new Date(crop.expected_harvest_date).toLocaleDateString() : 'TBD'}</p></div>
+                    <div className="bg-green-50 border border-green-100 p-3 rounded-xl"><p className="text-[10px] font-black text-green-600 uppercase mb-1">Price/Unit</p><p className="font-black text-green-700 text-lg">₹{crop.price}</p></div>
+                  </div>
+                  {crop.advance_booking_enabled && <p className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl w-max mb-3">ADVANCE BOOKING OPEN</p>}
+
+                  {/* Harvest Button */}
+                  {crop.status === 'approved' && (
+                    harvestingId === crop._id ? (
+                      <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 space-y-3 animate-[fadeIn_0.3s_ease-out]">
+                        <p className="text-xs font-black text-orange-800 uppercase tracking-widest">Mark as Harvested</p>
+                        <input type="number" placeholder="Final Qty Harvested" value={harvestData.final_qty} onChange={e => setHarvestData({...harvestData, final_qty: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none" />
+                        <select value={harvestData.quality_grade} onChange={e => setHarvestData({...harvestData, quality_grade: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none">
+                          <option value="A">Grade A (Premium)</option><option value="B">Grade B (Standard)</option><option value="C">Grade C (Low)</option>
+                        </select>
+                        <input type="number" placeholder="Selling Price ₹/unit" value={harvestData.selling_price} onChange={e => setHarvestData({...harvestData, selling_price: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none" />
+                        <div className="flex gap-2">
+                          <button onClick={() => handleHarvest(crop._id)} className="flex-1 bg-orange-600 text-white font-bold py-3 rounded-xl text-sm hover:bg-orange-700 transition-colors">Confirm Harvest</button>
+                          <button onClick={() => setHarvestingId(null)} className="px-4 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl text-sm">Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => setHarvestingId(crop._id)} className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl text-sm hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 shadow-md shadow-orange-500/20">
+                        <Tractor size={16}/> Mark as Harvested
+                      </button>
+                    )
+                  )}
+                </div>
+              ))}
             </div>
-            <h3 className="text-2xl font-bold text-[#1b431b] mb-2">No active crops available</h3>
-            <p className="text-gray-500 text-lg">Check back later for new supply listings.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {crops.filter(c => c.status === 'approved').map(crop => (
-              <div key={crop._id} className="bg-white rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 hover:shadow-[0_20px_40px_rgba(0,100,0,0.1)] hover:-translate-y-2 transition-all duration-300 group flex flex-col h-full">
-                
-                <div className="flex justify-between items-start mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-[#006400] group-hover:bg-[#006400] group-hover:text-white transition-colors">
-                      <Sprout size={24} />
-                    </div>
-                    <h3 className="text-2xl font-bold text-[#1b431b] capitalize">{crop.crop_name}</h3>
-                  </div>
-                  
-                  <span className={`px-3 py-1.5 text-xs font-bold rounded-lg shadow-sm border ${
-                    crop.status === 'approved' 
-                      ? 'bg-green-50 text-green-700 border-green-200' 
-                      : 'bg-orange-50 text-orange-700 border-orange-200'
-                  }`}>
-                    {crop.status.toUpperCase()}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-8 flex-grow">
-                  <div className="bg-gray-50 rounded-xl p-3 flex flex-col justify-center">
-                     <div className="flex items-center text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">
-                       <Sprout className="w-3 h-3 mr-1" /> Season
-                     </div>
-                     <span className="font-semibold text-gray-800 capitalize">{crop.season}</span>
-                  </div>
-                  
-                  <div className="bg-gray-50 rounded-xl p-3 flex flex-col justify-center">
-                     <div className="flex items-center text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">
-                       <Map className="w-3 h-3 mr-1" /> Area
-                     </div>
-                     <span className="font-semibold text-gray-800">{crop.area_value} {crop.area_unit}</span>
-                  </div>
-                  
-                  <div className="bg-gray-50 rounded-xl p-3 flex flex-col justify-center">
-                     <div className="flex items-center text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">
-                       <Scale className="w-3 h-3 mr-1" /> Yield
-                     </div>
-                     <span className="font-semibold text-gray-800">{crop.expected_yield}</span>
-                  </div>
-                  
-                  <div className="bg-green-50/50 border border-green-100 rounded-xl p-3 flex flex-col justify-center">
-                     <div className="flex items-center text-[#006400] text-xs font-bold uppercase tracking-wider mb-1">
-                       <IndianRupee className="w-3 h-3 mr-1" /> Price/Unit
-                     </div>
-                     <span className="font-bold text-xl text-[#006400]">₹{crop.price}</span>
-                  </div>
-                </div>
-
-                {/* Farmer Info */}
-                <div className="pt-5 border-t border-gray-100 flex items-center justify-between mt-auto">
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                      <User size={16} />
-                    </div>
-                    <span className="font-bold text-gray-700">{crop.user_id?.name || 'Unknown Farmer'}</span>
-                  </div>
-                  
-                  <button onClick={() => userInfo ? setEoiCrop(crop) : navigate('/login')} className="flex items-center gap-2 text-white bg-[#006400] px-4 py-2 rounded-xl hover:bg-[#004d00] hover:shadow-md font-semibold transition-all duration-300">
-                    <Mail size={16} /> Book
-                  </button>
-                </div>
-
-              </div>
-            ))}
           </div>
         )}
+
+        {/* Ready Crops Section */}
+        <div>
+          <h3 className="text-xl font-black text-gray-800 mb-4 flex items-center gap-2"><Wheat className="text-orange-600" size={22}/> {isFarmer ? 'Ready to Sell' : 'Available Crops'}</h3>
+          {readyCrops.filter(c => isFarmer || c.status === 'approved' || c.status === 'harvested').length === 0 ? (
+            <div className="bg-white rounded-[2rem] p-16 text-center shadow-sm border border-gray-100">
+              <Wheat className="mx-auto text-gray-300 mb-4" size={48}/>
+              <h4 className="text-xl font-black text-gray-400">No ready crops yet</h4>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {readyCrops.filter(c => isFarmer || c.status === 'approved' || c.status === 'harvested').map(crop => (
+                <div key={crop._id} className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all group">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <div className="flex gap-2 mb-2">
+                        <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-xl ${crop.status === 'approved' || crop.status === 'harvested' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-600'}`}>{crop.status}</span>
+                        {crop.quality_grade && crop.quality_grade !== 'Ungraded' && <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-xl bg-indigo-100 text-indigo-700">Grade {crop.quality_grade}</span>}
+                      </div>
+                      <h4 className="text-xl font-black text-gray-800 capitalize">{crop.crop_name}</h4>
+                    </div>
+                    <div className="bg-orange-50 p-2 rounded-xl group-hover:bg-orange-100 transition-colors"><Wheat className="text-orange-600" size={20}/></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Season</p><p className="font-bold text-gray-800">{crop.season}</p></div>
+                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Available</p><p className="font-bold text-gray-800">{crop.available_qty || crop.stock || 0} {crop.expected_yield_unit || 'kg'}</p></div>
+                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Area</p><p className="font-bold text-gray-800">{crop.area_value} {crop.area_unit}</p></div>
+                    <div className="bg-green-50 border border-green-100 p-3 rounded-xl"><p className="text-[10px] font-black text-green-600 uppercase mb-1">Price/Unit</p><p className="font-black text-green-700 text-lg">₹{crop.price}</p></div>
+                  </div>
+                  {crop.reserved_qty > 0 && <p className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl w-max mb-3">📦 {crop.reserved_qty} {crop.expected_yield_unit || 'kg'} Reserved</p>}
+                  {!isFarmer && crop.user_id && (
+                    <div className="pt-4 border-t border-gray-100 flex items-center gap-2 text-sm text-gray-500 font-medium">
+                      <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-black text-gray-500">{(crop.user_id?.name || 'F')[0]}</div>
+                      {crop.user_id?.name || 'Farmer'}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Expression of Interest Modal */}
-      {eoiCrop && (
+      {/* Add Crop Modal */}
+      {showAddForm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
-          <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl relative">
-            <button onClick={() => setEoiCrop(null)} className="absolute top-6 right-6 text-gray-400 hover:text-gray-600"><XCircle size={24}/></button>
-            <h3 className="text-2xl font-black text-gray-800 mb-2">Advance Contract EOI</h3>
-            <p className="text-gray-500 font-medium text-sm mb-6">Send an Expression of Interest to block {eoiCrop.expected_yield}kg of {eoiCrop.crop_name} before harvest.</p>
-            
-            <div className="bg-green-50 p-4 rounded-xl border border-green-100 mb-6">
-               <p className="text-xs font-black text-green-800 uppercase tracking-widest mb-1">Estimated Cost</p>
-               <p className="text-xl font-bold text-green-700">₹{(eoiCrop.price * eoiCrop.expected_yield).toLocaleString()} INR</p>
+          <div className="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
+            <div className="px-8 py-6 bg-gray-50 border-b border-gray-100 flex justify-between items-center shrink-0">
+              <h3 className="text-2xl font-black text-gray-800">List New Crop</h3>
+              <button onClick={() => setShowAddForm(false)} className="text-gray-400 hover:text-gray-600"><XCircle size={24}/></button>
             </div>
 
-            <textarea 
-               className="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-[#006400] transition-all min-h-[100px] text-sm mb-6" 
-               placeholder="Any specific requirements regarding moisture, delivery logistics, or payment terms?"
-               value={requirements}
-               onChange={(e) => setRequirements(e.target.value)}
-            ></textarea>
-            
-            <button 
-               disabled={submitting}
-               onClick={async () => { 
-                 setSubmitting(true);
-                 try {
-                   const res = await fetch('/api/bookings', {
-                     method: 'POST',
-                     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
-                     body: JSON.stringify({
-                       crop_id: eoiCrop._id,
-                       farmer_id: eoiCrop.user_id._id || eoiCrop.user_id,
-                       requirements,
-                       estimated_cost: eoiCrop.price * eoiCrop.expected_yield
-                     })
-                   });
-                   if(res.ok) {
-                     setEoiCrop(null); 
-                     setSuccessMsg(true);
-                     setRequirements('');
-                   } else {
-                     alert("Failed to submit EOI");
-                   }
-                 } catch(e) {
-                   alert("Network error.");
-                 } finally {
-                   setSubmitting(false);
-                 }
-               }} 
-               className="w-full bg-[#006400] text-white font-bold py-4 rounded-xl hover:bg-[#004d00] transition-colors shadow-lg disabled:opacity-50"
-            >
-              {submitting ? 'Submitting...' : 'Submit Binding EOI'}
-            </button>
-          </div>
-        </div>
-      )}
+            <form onSubmit={handleSubmit} className="p-8 overflow-y-auto flex-grow space-y-5">
+              {/* Type Toggle */}
+              <div className="flex bg-gray-100 rounded-xl overflow-hidden">
+                <button type="button" onClick={() => setCropType('growing')} className={`flex-1 py-3 text-sm font-bold transition-colors flex items-center justify-center gap-2 ${cropType === 'growing' ? 'bg-green-600 text-white' : 'text-gray-500 hover:bg-gray-200'}`}>
+                  <Sprout size={16}/> Growing
+                </button>
+                <button type="button" onClick={() => setCropType('ready')} className={`flex-1 py-3 text-sm font-bold transition-colors flex items-center justify-center gap-2 ${cropType === 'ready' ? 'bg-orange-600 text-white' : 'text-gray-500 hover:bg-gray-200'}`}>
+                  <Wheat size={16}/> Ready to Sell
+                </button>
+              </div>
 
-      {/* Success Popup */}
-      {successMsg && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-[fadeIn_0.3s_ease-out]">
-          <div className="bg-white rounded-3xl w-full max-w-sm p-8 shadow-2xl text-center transform scale-100 transition-transform">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-10 h-10 text-[#006400]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-            </div>
-            <h3 className="text-2xl font-black text-[#1b431b] mb-3">Request Sent!</h3>
-            <p className="text-gray-600 font-medium text-[15px] mb-8 leading-relaxed">
-              Your Expression of Interest profile has been dispatched. The farmer and admin will review your request and contact you for legal formalities.
-            </p>
-            <button 
-              onClick={() => setSuccessMsg(false)} 
-              className="w-full bg-gradient-to-r from-[#006400] to-[#2ecc71] hover:from-[#004d00] hover:to-[#228b22] text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-green-500/30"
-            >
-              Okay, Got it!
-            </button>
+              {/* Common Fields */}
+              <input required placeholder="Crop Name (e.g. Wheat, Cotton)" value={form.crop_name} onChange={e => setForm({...form, crop_name: e.target.value})} className="w-full p-4 rounded-xl border border-gray-200 font-medium text-sm focus:outline-none focus:border-green-400" />
+
+              {myLands.length > 0 && (
+                <select value={form.land_id} onChange={e => setForm({...form, land_id: e.target.value})} className="w-full p-4 rounded-xl border border-gray-200 font-medium text-sm focus:outline-none">
+                  <option value="">Link to Land (Optional)</option>
+                  {myLands.map(l => <option key={l._id} value={l._id}>{l.location} — {l.area_value || l.area_in_acres} {l.area_unit || 'Acres'}</option>)}
+                </select>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <input required type="number" placeholder="Area Value" value={form.area_value} onChange={e => setForm({...form, area_value: e.target.value})} className="w-full p-4 rounded-xl border border-gray-200 font-medium text-sm focus:outline-none" />
+                <select value={form.area_unit} onChange={e => setForm({...form, area_unit: e.target.value})} className="w-full p-4 rounded-xl border border-gray-200 font-medium text-sm focus:outline-none">
+                  <option>Bigha</option><option>Acre</option><option>Hectare</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <select value={form.season} onChange={e => setForm({...form, season: e.target.value})} className="w-full p-4 rounded-xl border border-gray-200 font-medium text-sm focus:outline-none">
+                  <option>Monsoon</option><option>Winter</option><option>Summer</option><option>All Season</option>
+                </select>
+                <input required type="number" placeholder="Price ₹/unit" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="w-full p-4 rounded-xl border border-gray-200 font-medium text-sm focus:outline-none" />
+              </div>
+
+              {/* Growing-specific */}
+              {cropType === 'growing' && (
+                <div className="bg-green-50 border border-green-100 rounded-2xl p-5 space-y-4">
+                  <p className="text-[10px] font-black text-green-800 uppercase tracking-widest flex items-center gap-1"><Sprout size={12}/> Growing Crop Details</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div><label className="text-[10px] font-bold text-green-600 uppercase block mb-1">Sowing Date</label><input type="date" value={form.sowing_date} onChange={e => setForm({...form, sowing_date: e.target.value})} className="w-full p-3 rounded-xl border border-green-200 text-sm font-medium focus:outline-none" /></div>
+                    <div><label className="text-[10px] font-bold text-green-600 uppercase block mb-1">Expected Harvest</label><input type="date" value={form.expected_harvest_date} onChange={e => setForm({...form, expected_harvest_date: e.target.value})} className="w-full p-3 rounded-xl border border-green-200 text-sm font-medium focus:outline-none" /></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <input type="number" placeholder="Expected Yield Qty" value={form.expected_yield_qty} onChange={e => setForm({...form, expected_yield_qty: e.target.value})} className="w-full p-3 rounded-xl border border-green-200 text-sm font-medium focus:outline-none" />
+                    <select value={form.expected_yield_unit} onChange={e => setForm({...form, expected_yield_unit: e.target.value})} className="w-full p-3 rounded-xl border border-green-200 text-sm font-medium focus:outline-none">
+                      <option value="kg">KG</option><option value="quintal">Quintal</option><option value="ton">Ton</option>
+                    </select>
+                  </div>
+                  <label className="flex items-center gap-3 cursor-pointer bg-white p-3 rounded-xl border border-green-200">
+                    <input type="checkbox" checked={form.advance_booking_enabled} onChange={e => setForm({...form, advance_booking_enabled: e.target.checked})} className="w-5 h-5 accent-green-600" />
+                    <span className="text-sm font-bold text-green-800">Enable Advance Booking for Buyers</span>
+                  </label>
+                </div>
+              )}
+
+              {/* Ready-specific */}
+              {cropType === 'ready' && (
+                <div className="bg-orange-50 border border-orange-100 rounded-2xl p-5 space-y-4">
+                  <p className="text-[10px] font-black text-orange-800 uppercase tracking-widest flex items-center gap-1"><Wheat size={12}/> Ready Crop Details</p>
+                  <input required type="number" placeholder="Available Quantity" value={form.available_qty} onChange={e => setForm({...form, available_qty: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none" />
+                  <select value={form.quality_grade} onChange={e => setForm({...form, quality_grade: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none">
+                    <option value="A">Grade A (Premium)</option><option value="B">Grade B (Standard)</option><option value="C">Grade C (Basic)</option><option value="Ungraded">Ungraded</option>
+                  </select>
+                </div>
+              )}
+
+              <button type="submit" className="w-full bg-[#006400] text-white font-bold py-4 rounded-xl hover:bg-[#004d00] transition-colors shadow-lg text-sm">
+                Submit Crop for Approval
+              </button>
+            </form>
           </div>
         </div>
       )}

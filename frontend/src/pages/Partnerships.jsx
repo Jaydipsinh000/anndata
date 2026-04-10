@@ -6,11 +6,13 @@ import { useNavigate } from 'react-router-dom';
 function Partnerships() {
   const [partnerships, setPartnerships] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('All');
   const navigate = useNavigate();
 
   const fetchPartnerships = async () => {
     try {
+      setError(null);
       const userInfoMap = localStorage.getItem('userInfo');
       if(!userInfoMap) { navigate('/login'); return; }
       const userInfo = JSON.parse(userInfoMap);
@@ -18,10 +20,25 @@ function Partnerships() {
       const res = await fetch('/api/partnerships/my', {
         headers: { Authorization: `Bearer ${userInfo.token}` }
       });
-      const data = await res.json();
+
+      if(!res.ok) {
+        setPartnerships([]);
+        setLoading(false);
+        return;
+      }
+
+      let data;
+      try {
+        data = await res.json();
+      } catch(parseErr) {
+        console.error('JSON parse error:', parseErr);
+        data = [];
+      }
       setPartnerships(Array.isArray(data) ? data : []);
     } catch(err) {
-      console.error(err);
+      console.error('Partnership fetch error:', err);
+      setError(err.message);
+      setPartnerships([]);
     } finally {
       setLoading(false);
     }
@@ -30,16 +47,20 @@ function Partnerships() {
   useEffect(() => { fetchPartnerships(); }, []);
 
   const completeTask = async (pId, taskId) => {
-    const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-    await fetch(`/api/partnerships/${pId}/tasks/toggle`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
-      body: JSON.stringify({ taskId, is_completed: true })
-    });
-    fetchPartnerships();
+    try {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+      await fetch(`/api/partnerships/${pId}/tasks/toggle`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
+        body: JSON.stringify({ taskId, is_completed: true })
+      });
+      fetchPartnerships();
+    } catch(err) { console.error(err); }
   };
 
   if(loading) return <div className="min-h-screen bg-[#f8fafc]"><Navbar /><div className="text-center py-20 text-xl font-bold">Loading Enterprise Dashboard...</div></div>;
+  
+  if(error) return <div className="min-h-screen bg-[#f8fafc]"><Navbar /><div className="text-center py-20"><p className="text-xl font-bold text-red-600 mb-2">Connection Error</p><p className="text-gray-500">{error}</p><button onClick={fetchPartnerships} className="mt-4 bg-orange-500 text-white px-6 py-2 rounded-xl font-bold">Retry</button></div></div>;
 
   // --- Compute ERP Analytics ---
   const filteredPartnerships = useMemo(() => {
