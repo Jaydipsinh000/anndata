@@ -39,19 +39,23 @@ function Navbar() {
             { name: t('nav.partnerships', 'Partnerships'), path: '/partnerships' },
             { name: t('nav.bookings', 'My Bookings'), path: '/bookings' },
             { name: t('nav.tools', 'Tools'), path: '/tools' },
+            { name: 'Services', path: '/services' },
             { name: t('nav.marketplace', 'Marketplace'), path: '/marketplace' }
         ] : []),
         ...(userRole === 'buyer' ? [
             { name: t('nav.bookings', 'My Bookings'), path: '/bookings' },
+            { name: 'Services', path: '/services' },
             { name: t('nav.marketplace', 'Marketplace'), path: '/marketplace' }
         ] : []),
         ...(userRole === 'worker' ? [
-            { name: t('nav.tools', 'Tool Rentals'), path: '/tools' }
+            { name: t('nav.tools', 'Tool Rentals'), path: '/tools' },
+            { name: 'Services', path: '/services' }
         ] : []),
         { name: t('nav.profile', 'Profile'), path: '/profile' }
       ]
     : [
         { name: t('nav.home', 'Home'), path: '/home' },
+        { name: 'Services', path: '/services' },
         { name: t('nav.marketplace', 'Marketplace'), path: '/marketplace' }
       ];
 

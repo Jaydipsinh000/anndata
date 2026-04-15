@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { Leaf, Sprout, Tractor, Globe } from 'lucide-react';
+import AiCropDoctor from '../components/AiCropDoctor';
+import WeatherWidget from '../components/WeatherWidget';
 
 function Home() {
   const { t } = useTranslation();
@@ -61,6 +63,10 @@ function Home() {
               Explore Market
             </button>
           </div>
+
+          <div className="mt-16 flex justify-center animate-[fadeIn_1.6s_ease-out]">
+             <WeatherWidget />
+          </div>
         </div>
         
         {/* Curved Bottom Separator */}
@@ -90,6 +96,11 @@ function Home() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* AI Doctor Section */}
+      <section className="max-w-6xl mx-auto px-5 pb-24 relative z-20">
+         <AiCropDoctor />
       </section>
 
       {/* Content Section */}

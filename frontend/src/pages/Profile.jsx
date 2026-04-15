@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import { useTranslation } from 'react-i18next';
-import { User, MapPin, Mail, Phone, LogOut, Settings, Plus, Sprout, Shield } from 'lucide-react';
+import { User, MapPin, Mail, Phone, LogOut, Settings, Plus, Sprout, Shield, CheckCircle, Crown, Loader2 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import CropUploadForm from '../components/farmer/CropUploadForm';
 
 function Profile() {
@@ -12,6 +13,9 @@ function Profile() {
   
   const [isCropFormOpen, setIsCropFormOpen] = useState(false);
   const [myCrops, setMyCrops] = useState([]);
+  const [liveUserStats, setLiveUserStats] = useState(null);
+  const [subscription, setSubscription] = useState(null);
+  const [submittingSub, setSubmittingSub] = useState(false);
 
   useEffect(() => {
     const userInfoMap = localStorage.getItem('userInfo');
@@ -19,6 +23,22 @@ function Profile() {
       const parsedUser = JSON.parse(userInfoMap);
       setUser(parsedUser);
       
+      // Fetch live user stats
+      fetch('/api/auth/profile', {
+        headers: { Authorization: `Bearer ${parsedUser.token}` }
+      })
+      .then(res => res.json())
+      .then(data => setLiveUserStats(data))
+      .catch(err => console.error(err));
+
+      // Fetch Subscriptions
+      fetch('/api/subscriptions/my', {
+         headers: { Authorization: `Bearer ${parsedUser.token}` }
+      })
+      .then(res => res.json())
+      .then(data => setSubscription(data))
+      .catch(err => console.error(err));
+
       // If user is a farmer, fetch their crops
       if(parsedUser.role === 'farmer') {
         fetch('/api/crops/mycrops', {
@@ -42,6 +62,29 @@ function Profile() {
     setMyCrops([newCrop, ...myCrops]);
   };
 
+  const handleUpgradeSubscription = async (plan_name) => {
+    setSubmittingSub(true);
+    const loadingToast = toast.loading(`Upgrading to ${plan_name}...`);
+    try {
+       const res = await fetch('/api/subscriptions/upgrade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.token}` },
+          body: JSON.stringify({ plan_name, duration_days: 30 }) // 30 day cycle
+       });
+       if (res.ok) {
+          const updatedSub = await res.json();
+          setSubscription(updatedSub);
+          toast.success(`Successfully upgraded to ${plan_name}!`, { id: loadingToast });
+       } else {
+          toast.error('Upgrade failed', { id: loadingToast });
+       }
+    } catch (e) {
+       toast.error('Server error', { id: loadingToast });
+    } finally {
+       setSubmittingSub(false);
+    }
+  };
+
   if(!user) return null;
 
   return (
@@ -59,6 +102,26 @@ function Profile() {
             {t('profile.title') || 'Your Profile'}
           </h2>
           <p className="text-green-100 font-bold text-lg uppercase tracking-widest">{user.role}</p>
+          
+          {/* Trust Metrics Badge */}
+          {liveUserStats && (
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-4 animate-[fadeIn_0.5s_ease-out]">
+              <div className="bg-white/10 border border-white/20 backdrop-blur-md px-6 py-3 rounded-2xl flex items-center gap-3 shadow-lg">
+                <Shield className={liveUserStats.trust_score > 70 ? "text-yellow-400" : "text-green-300"} size={26} />
+                <div className="text-left">
+                  <p className="text-white/70 text-[10px] font-black uppercase tracking-widest">Trust Score</p>
+                  <p className="text-white font-black text-xl">{liveUserStats.trust_score} <span className="text-sm font-medium text-white/60">/ 100</span></p>
+                </div>
+              </div>
+              <div className="bg-white/10 border border-white/20 backdrop-blur-md px-6 py-3 rounded-2xl flex items-center gap-3 shadow-lg">
+                <CheckCircle className="text-blue-300" size={26} />
+                <div className="text-left">
+                  <p className="text-white/70 text-[10px] font-black uppercase tracking-widest">Completed Deals</p>
+                  <p className="text-white font-black text-xl">{liveUserStats.completed_deals}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -131,6 +194,35 @@ function Profile() {
                       <p className="text-lg font-bold text-[#1b431b] truncate">{user.address || 'No address'}</p>
                     </div>
                   </div>
+                </div>
+
+                <div className="mt-8 bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+                   <div className="relative z-10">
+                     <h4 className="font-black text-lg flex items-center gap-2 mb-2"><Crown className="text-yellow-400"/> Subscription Tier</h4>
+                     
+                     {subscription ? (
+                        <>
+                           <p className="text-gray-300 text-sm mb-4">Current Plan: <span className="font-bold text-white tracking-widest uppercase">{subscription.plan_name}</span></p>
+                           {subscription.plan_name === 'Free' && (
+                              <button 
+                                 disabled={submittingSub}
+                                 onClick={() => handleUpgradeSubscription('Pro')}
+                                 className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-gray-900 font-black py-3 rounded-xl shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-50"
+                              >
+                                 {submittingSub ? <Loader2 className="animate-spin" size={16}/> : 'Upgrade to Pro - ₹999/mo'}
+                              </button>
+                           )}
+                           {subscription.plan_name !== 'Free' && (
+                              <div className="bg-white/10 border border-yellow-500/30 rounded-xl p-3 text-center">
+                                 <p className="text-xs text-yellow-100 font-bold tracking-widest uppercase">Premium Active</p>
+                                 <p className="text-[10px] text-gray-400 mt-1">Valid until: {new Date(subscription.expiry_date).toLocaleDateString()}</p>
+                              </div>
+                           )}
+                        </>
+                     ) : (
+                        <p className="text-sm text-gray-400"><Loader2 className="animate-spin inline" size={16}/> Loading...</p>
+                     )}
+                   </div>
                 </div>
                 
                 <div className="mt-10 pt-6 border-t border-gray-100 flex justify-center">

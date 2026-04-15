@@ -12,6 +12,7 @@ import Profile from './pages/Profile';
 import Tools from './pages/Tools';
 import Partnerships from './pages/Partnerships';
 import Bookings from './pages/Bookings';
+import Services from './pages/Services';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function LanguageSelector() {
@@ -113,6 +114,7 @@ function App() {
           {/* Protected Routes - All logged in users */}
           <Route path="/marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
           <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
+          <Route path="/services" element={<ProtectedRoute><Services /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           
           {/* Protected Routes - Admin only */}

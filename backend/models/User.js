@@ -48,6 +48,22 @@ const userSchema = new mongoose.Schema({
   tool_limit: {
     type: Number,
     default: 5
+  },
+  trust_score: {
+    type: Number,
+    default: 50 // Scale of 0-100, increases with successful deals and admin verification
+  },
+  completed_deals: {
+    type: Number,
+    default: 0
+  },
+  rating_sum: {
+    type: Number,
+    default: 0
+  },
+  rating_count: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true // This will automatically add created_at and updated_at

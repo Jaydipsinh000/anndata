@@ -3,15 +3,19 @@ import Navbar from '../components/Navbar';
 import { Store, ShoppingCart, Sprout, Wheat, MapPin, Tag, Package, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import CheckoutModal from '../components/CheckoutModal';
 
 function Marketplace() {
   const [crops, setCrops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('all'); // all, ready, growing
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [organicFilter, setOrganicFilter] = useState(false);
   
   // Advance Booking Modal
   const [bookingModal, setBookingModal] = useState(null);
+  const [checkoutItem, setCheckoutItem] = useState(null);
   const [bidForm, setBidForm] = useState({ requested_qty: '', offered_price: '' });
 
   const navigate = useNavigate();
@@ -50,15 +54,44 @@ function Marketplace() {
     } catch (err) { console.error(err); }
   };
 
-  const handleBuyNow = (cropId) => {
+  const handleBuyNow = async (crop) => {
     if (!userInfo) return navigate('/login');
-    // Implement direct checkout logic or redirect
-    toast.error("Checkout module pending connection");
+    const toastId = toast.loading('Connecting securely to server...');
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userInfo.token}`
+        },
+        body: JSON.stringify({
+          crop_id: crop._id,
+          farmer_id: crop.user_id?._id || crop.user_id,
+          order_type: 'marketplace_purchase',
+          requested_qty: 1,
+          offered_price: crop.price,
+          requirements: 'Direct marketplace purchase'
+        })
+      });
+
+      if (res.ok) {
+        const booking = await res.json();
+        toast.dismiss(toastId);
+        setCheckoutItem({ ...crop, booking_id: booking._id, quantity: crop.available_qty || crop.stock, unit: crop.expected_yield_unit || 'kg', price_per_unit: crop.price });
+      } else {
+        toast.error('Unable to connect to server. Please try again.', { id: toastId });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Unable to connect to server. Please try again.', { id: toastId });
+    }
   };
 
   const filteredCrops = crops.filter(c => {
     if (filterType === 'ready' && c.type === 'growing') return false;
     if (filterType === 'growing' && c.type !== 'growing') return false;
+    if (categoryFilter !== 'All' && (c.category || 'Other') !== categoryFilter) return false;
+    if (organicFilter && !c.is_organic) return false;
     if (searchTerm && !c.crop_name?.toLowerCase().includes(searchTerm.toLowerCase())) return false;
     return true;
   });
@@ -87,7 +120,8 @@ function Marketplace() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         
         {/* Filters */}
-        <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-3xl shadow-sm border border-gray-100 mb-10 gap-4 relative z-20 -mt-20">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-10 relative z-20 -mt-16">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
              <div className="relative w-full md:w-1/2">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input type="text" placeholder="Search for wheat, rice, corn..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full bg-gray-50 border-none rounded-2xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-[#006400] transition-all font-medium" />
@@ -98,6 +132,28 @@ function Marketplace() {
                <button onClick={() => setFilterType('ready')} className={`px-6 py-2.5 rounded-xl font-bold transition-colors whitespace-nowrap flex items-center gap-2 ${filterType === 'ready' ? 'bg-orange-500 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}><Wheat size={16}/> Ready Crops</button>
                <button onClick={() => setFilterType('growing')} className={`px-6 py-2.5 rounded-xl font-bold transition-colors whitespace-nowrap flex items-center gap-2 ${filterType === 'growing' ? 'bg-green-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}><Sprout size={16}/> Advance Bookings</button>
              </div>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-gray-100">
+             <div className="flex items-center gap-2">
+               <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Category:</span>
+               <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm font-bold text-gray-700 outline-none focus:border-green-500">
+                 <option value="All">All Categories</option>
+                 <option value="Grains">Grains</option>
+                 <option value="Vegetables">Vegetables</option>
+                 <option value="Fruits">Fruits</option>
+                 <option value="Spices">Spices</option>
+                 <option value="Other">Other</option>
+               </select>
+             </div>
+             
+             <label className="flex items-center gap-2 cursor-pointer group">
+               <div className={`w-10 h-6 flex items-center bg-gray-300 rounded-full p-1 duration-300 ease-in-out ${organicFilter ? 'bg-green-500' : ''}`}>
+                 <div className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${organicFilter ? 'translate-x-4' : ''}`}></div>
+               </div>
+               <span className="text-sm font-bold text-gray-600 group-hover:text-green-600 transition-colors">Organic Certified Only</span>
+             </label>
+          </div>
         </div>
 
         {/* Ready Crops */}
@@ -128,7 +184,7 @@ function Marketplace() {
                     </div>
                   </div>
                   <div className="p-4 bg-gray-50 border-t border-gray-100">
-                    <button onClick={() => handleBuyNow(crop._id)} className="w-full py-3 bg-[#006400] hover:bg-[#004d00] text-white rounded-xl font-black transition-colors flex items-center justify-center gap-2 shadow-md hover:-translate-y-0.5">
+                    <button onClick={() => handleBuyNow(crop)} className="w-full py-3 bg-[#006400] hover:bg-[#004d00] text-white rounded-xl font-black transition-colors flex items-center justify-center gap-2 shadow-md hover:-translate-y-0.5">
                        <ShoppingCart size={18} /> Buy Now
                     </button>
                   </div>
@@ -215,6 +271,8 @@ function Marketplace() {
           </div>
         </div>
       )}
+
+      {checkoutItem && <CheckoutModal item={checkoutItem} onClose={() => setCheckoutItem(null)} />}
     </div>
   );
 }

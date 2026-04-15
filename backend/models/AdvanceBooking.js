@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const NegotiationEntry = new mongoose.Schema({
-  by: { type: String, enum: ['buyer', 'admin'], required: true },
+  by: { type: String, enum: ['buyer', 'admin', 'farmer'], required: true },
   price: { type: Number },
   qty: { type: Number },
   message: { type: String, default: '' },
@@ -33,6 +33,8 @@ const advanceBookingSchema = new mongoose.Schema({
 
   farmer_message: { type: String, default: '' },
   admin_message: { type: String, default: '' },
+  
+  contract_url: { type: String, default: null }
 }, { timestamps: true });
 
 export default mongoose.model('AdvanceBooking', advanceBookingSchema);

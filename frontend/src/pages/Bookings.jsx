@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import toast from 'react-hot-toast';
-import { Loader2, Mail, CheckCircle, XCircle, Clock, Send, ShieldCheck, User, IndianRupee, Package, MessageSquare, Sprout, Wheat } from 'lucide-react';
+import { Loader2, Mail, CheckCircle, XCircle, Clock, Send, ShieldCheck, User, IndianRupee, Package, MessageSquare, Sprout, Wheat, FileText, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ChatModal from '../components/ChatModal';
 
 function Bookings() {
   const [bookings, setBookings] = useState([]);
   const [growingCrops, setGrowingCrops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bookingModal, setBookingModal] = useState(null);
+  const [negotiateModal, setNegotiateModal] = useState(null);
+  const [chatModal, setChatModal] = useState(null);
   const [bidForm, setBidForm] = useState({ requested_qty: '', offered_price: '', requirements: '' });
+  const [negotiateForm, setNegotiateForm] = useState({ price: '', qty: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
 
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || 'null');
@@ -38,15 +42,82 @@ function Bookings() {
   };
 
   const handleUpdateStatus = async (id, status) => {
-    if (!window.confirm(`Are you sure you want to ${status} this request?`)) return;
+    toast((t) => (
+      <div className="flex flex-col gap-3 p-2">
+        <div className="flex items-center gap-3">
+          <div className="text-[#006400] bg-green-100 p-2 rounded-full shadow-sm">
+            <CheckCircle size={24} />
+          </div>
+          <div>
+            <p className="font-extrabold text-gray-800 text-lg">Confirm Action</p>
+            <p className="text-sm text-gray-600 font-medium">Are you sure you want to {status.replace(/_/g, ' ')} this request?</p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end mt-2 pt-2 border-t border-gray-100">
+          <button 
+            onClick={() => toast.dismiss(t.id)} 
+            className="px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 rounded-xl text-sm font-bold transition-colors"
+          >
+            Cancel
+          </button>
+          <button 
+            onClick={async () => {
+              toast.dismiss(t.id);
+              const loadingToast = toast.loading('Updating...');
+              try {
+                const res = await fetch(`/api/bookings/${id}/status`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
+                  body: JSON.stringify({ status })
+                });
+                if (res.ok) {
+                  toast.success('Status updated successfully!', { id: loadingToast });
+                  fetchBookings();
+                } else {
+                  const data = await res.json();
+                  toast.error(data.message || 'Failed to update', { id: loadingToast });
+                }
+              } catch(e) { 
+                console.error(e); 
+                toast.error('An error occurred during update', { id: loadingToast });
+              }
+            }} 
+            className="px-4 py-2 bg-[#006400] hover:bg-[#004d00] text-white rounded-xl text-sm font-bold shadow-md transition-colors"
+          >
+            Yes, {status.replace(/_/g, ' ')}
+          </button>
+        </div>
+      </div>
+    ), { duration: Infinity, style: { maxWidth: '400px', borderRadius: '1.5rem', padding: '1rem' } });
+  };
+
+  const handleNegotiateAction = async (id) => {
+    setSubmitting(true);
+    const loadingToast = toast.loading('Sending counter offer...');
     try {
-      await fetch(`/api/bookings/${id}/status`, {
+      const res = await fetch(`/api/bookings/${id}/negotiate`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` },
-        body: JSON.stringify({ status })
+        body: JSON.stringify({
+          price: Number(negotiateForm.price),
+          qty: Number(negotiateForm.qty),
+          message: negotiateForm.message
+        })
       });
-      fetchBookings();
-    } catch(e) { console.error(e); }
+      if (res.ok) {
+        toast.success("Counter offer sent!", { id: loadingToast });
+        setNegotiateModal(null);
+        setNegotiateForm({ price: '', qty: '', message: '' });
+        fetchBookings();
+      } else {
+        const data = await res.json();
+        toast.error(data.message || "Negotiation failed", { id: loadingToast });
+      }
+    } catch(e) {
+      toast.error("An error occurred", { id: loadingToast });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handlePlaceBooking = async (crop) => {
@@ -175,17 +246,50 @@ function Bookings() {
                   </div>
                 )}
 
-                {/* Farmer Actions */}
-                {userInfo.role === 'farmer' && b.status === 'pending' && (
-                  <div className="flex gap-3 pt-4 border-t border-gray-100">
-                    <button onClick={() => handleUpdateStatus(b._id, 'rejected')} className="flex-1 py-3 text-red-600 font-bold bg-red-50 hover:bg-red-100 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm">
-                      <XCircle size={16}/> Decline
-                    </button>
-                    <button onClick={() => handleUpdateStatus(b._id, 'farmer_accepted')} className="flex-1 py-3 text-white font-bold bg-[#006400] hover:bg-[#004d00] rounded-xl transition-colors shadow-md flex items-center justify-center gap-2 text-sm">
-                      <CheckCircle size={16}/> Accept
-                    </button>
+                {b.contract_url && (
+                  <div className="mb-4">
+                    <a href={`http://localhost:5000${b.contract_url}`} target="_blank" rel="noreferrer" className="w-full bg-[#f8fafc] border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm shadow-sm">
+                      <FileText size={18} className="text-red-500" />
+                      <span className="flex-1 text-left px-2">Download Smart Contract (PDF)</span>
+                      <Download size={16} />
+                    </a>
                   </div>
                 )}
+
+                {/* Negotiation / Action Controls */}
+                <div className="flex gap-2 pt-4 border-t border-gray-100 flex-wrap">
+                  <button 
+                    onClick={() => setChatModal(b)}
+                    className="flex-[0.5] py-2 px-3 text-white font-bold bg-[#FF9800] hover:bg-[#F57C00] rounded-xl transition-colors flex items-center justify-center gap-2 text-sm shadow-md"
+                  >
+                     <MessageSquare size={16}/> Live Chat
+                  </button>
+                  
+                  {(['pending', 'negotiating'].includes(b.status)) && (
+                    <>
+                      {(userInfo.role === 'farmer' || userInfo.role === 'admin' || (isBuyer && b.status === 'negotiating')) && (
+                        <button 
+                          onClick={() => { setNegotiateModal(b); setNegotiateForm({ price: b.offered_price || b.estimated_cost, qty: b.requested_qty || 0, message: '' }); }}
+                          className="flex-1 py-2 px-3 text-indigo-600 font-bold bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm shadow-sm"
+                        >
+                           <MessageSquare size={16}/> Counter Offer
+                        </button>
+                      )}
+                      {userInfo.role === 'farmer' && (
+                         <>
+                           <button onClick={() => handleUpdateStatus(b._id, 'rejected')} className="flex-[0.8] py-2 px-3 text-red-600 font-bold bg-red-50 hover:bg-red-100 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm shadow-sm"><XCircle size={16}/> Decline</button>
+                           <button onClick={() => handleUpdateStatus(b._id, 'farmer_accepted')} className="flex-[0.8] py-2 px-3 text-white font-bold bg-[#006400] hover:bg-[#004d00] rounded-xl transition-colors shadow-md flex items-center justify-center gap-2 text-sm"><CheckCircle size={16}/> Accept Deal</button>
+                         </>
+                      )}
+                      {isBuyer && b.status === 'negotiating' && (
+                         <>
+                           <button onClick={() => handleUpdateStatus(b._id, 'rejected')} className="flex-[0.8] py-2 px-3 text-red-600 font-bold bg-red-50 hover:bg-red-100 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm shadow-sm"><XCircle size={16}/> Drop Deal</button>
+                           <button onClick={() => handleUpdateStatus(b._id, 'accepted')} className="flex-[0.8] py-2 px-3 text-white font-bold bg-[#006400] hover:bg-[#004d00] rounded-xl transition-colors shadow-md flex items-center justify-center gap-2 text-sm"><CheckCircle size={16}/> Accept Deal</button>
+                         </>
+                      )}             
+                    </>
+                  )}
+                </div>
 
                 {/* Buyer Confirm (when farmer harvested) */}
                 {isBuyer && b.status === 'farmer_harvested' && (
@@ -239,6 +343,49 @@ function Bookings() {
           </div>
         </div>
       )}
+
+      {/* Negotiate Modal */}
+      {negotiateModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-white rounded-[2rem] w-full max-w-md p-8 shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-black text-gray-800">Counter Offer</h3>
+              <button onClick={() => setNegotiateModal(null)} className="text-gray-400 hover:text-gray-600"><XCircle size={24}/></button>
+            </div>
+
+            <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 mb-6">
+              <p className="text-xs font-black text-indigo-800 uppercase tracking-widest mb-1">Make a firm counter proposal</p>
+              <p className="text-sm text-indigo-700 font-medium">This will be tracked in the negotiation history and notify the other party.</p>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Quantity Requested</label>
+                <input type="number" value={negotiateForm.qty} onChange={e => setNegotiateForm({...negotiateForm, qty: e.target.value})} className="w-full p-4 rounded-xl border border-gray-200 font-medium text-sm focus:outline-none focus:border-indigo-400" />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Proposed Price (₹ per unit)</label>
+                <input type="number" value={negotiateForm.price} onChange={e => setNegotiateForm({...negotiateForm, price: e.target.value})} className="w-full p-4 rounded-xl border border-gray-200 font-medium text-sm focus:outline-none focus:border-indigo-400" />
+              </div>
+              <textarea placeholder="Message explaining counter-offer..." value={negotiateForm.message} onChange={e => setNegotiateForm({...negotiateForm, message: e.target.value})} className="w-full p-4 rounded-xl border border-gray-200 font-medium text-sm focus:outline-none min-h-[80px]" />
+              
+              {negotiateForm.qty && negotiateForm.price && (
+                <div className="bg-gray-50 p-4 rounded-xl text-center">
+                  <p className="text-xs text-gray-500 font-bold mb-1">Proposed Deal Value</p>
+                  <p className="text-2xl font-black text-indigo-600">₹{(Number(negotiateForm.qty) * Number(negotiateForm.price)).toLocaleString('en-IN')}</p>
+                </div>
+              )}
+            </div>
+
+            <button disabled={submitting || !negotiateForm.price} onClick={() => handleNegotiateAction(negotiateModal._id)} className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+              {submitting ? 'Submitting...' : 'Send Counter Offer'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Chat Modal */}
+      {chatModal && <ChatModal booking={chatModal} onClose={() => setChatModal(null)} />}
     </div>
   );
 }

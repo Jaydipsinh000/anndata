@@ -1,5 +1,6 @@
 import AdvanceBooking from '../models/AdvanceBooking.js';
 import Crop from '../models/Crop.js';
+import { generateContractPDF } from '../utils/pdfGenerator.js';
 
 // Buyer: Place a booking or purchase request
 export const createBooking = async (req, res) => {
@@ -48,8 +49,8 @@ export const getMyBookings = async (req, res) => {
       $or: [{ buyer_id: req.user._id }, { farmer_id: req.user._id }]
     })
     .populate('crop_id')
-    .populate('buyer_id', 'name email mobile')
-    .populate('farmer_id', 'name email mobile')
+    .populate('buyer_id', 'name email mobile trust_badge completed_deals')
+    .populate('farmer_id', 'name email mobile trust_badge completed_deals')
     .sort('-createdAt');
     res.json(bookings);
   } catch (error) {
@@ -62,8 +63,8 @@ export const getAdminBookings = async (req, res) => {
   try {
     const bookings = await AdvanceBooking.find()
       .populate('crop_id')
-      .populate('buyer_id', 'name email mobile')
-      .populate('farmer_id', 'name email mobile')
+      .populate('buyer_id', 'name email mobile trust_badge completed_deals')
+      .populate('farmer_id', 'name email mobile trust_badge completed_deals')
       .sort('-createdAt');
     res.json(bookings);
   } catch (error) {
@@ -75,7 +76,9 @@ export const getAdminBookings = async (req, res) => {
 export const updateBookingStatus = async (req, res) => {
   try {
     const { status, message } = req.body;
-    const booking = await AdvanceBooking.findById(req.params.id);
+    const booking = await AdvanceBooking.findById(req.params.id)
+       .populate('buyer_id', 'name email')
+       .populate('farmer_id', 'name email');
 
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
@@ -98,6 +101,14 @@ export const updateBookingStatus = async (req, res) => {
       }
       booking.final_qty = booking.final_qty || booking.requested_qty;
       booking.final_price = booking.final_price || booking.offered_price;
+
+      try {
+         const fileName = `Anndata-Contract-${booking._id}.pdf`;
+         const docPath = await generateContractPDF(booking, fileName);
+         booking.contract_url = docPath;
+      } catch (err) {
+         console.error("PDF Generation failed:", err);
+      }
     }
 
     // When completed → deduct from available
@@ -129,19 +140,24 @@ export const updateBookingStatus = async (req, res) => {
   }
 };
 
-// Admin: Send counter-offer (negotiation)
+// Shared: Send counter-offer (negotiation)
 export const negotiateBooking = async (req, res) => {
   try {
     const { price, qty, message } = req.body;
     const booking = await AdvanceBooking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
+    // Determine who is negotiating
+    let negotiator = 'buyer';
+    if (['admin', 'superadmin'].includes(req.user.role)) negotiator = 'admin';
+    else if (req.user.role === 'farmer') negotiator = 'farmer';
+
     booking.status = 'negotiating';
     booking.negotiation_log.push({
-      by: 'admin',
+      by: negotiator,
       price: price || booking.offered_price,
       qty: qty || booking.requested_qty,
-      message: message || 'Counter offer from admin'
+      message: message || `Counter offer from ${negotiator}`
     });
 
     // Update the live offer numbers

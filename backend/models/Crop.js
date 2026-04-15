@@ -4,6 +4,8 @@ const cropSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   land_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Land' },
   crop_name: { type: String, required: true },
+  category: { type: String, enum: ['Grains', 'Vegetables', 'Fruits', 'Spices', 'Other'], default: 'Other' },
+  is_organic: { type: Boolean, default: false },
 
   // Type: growing = future crop, ready = harvested & available
   type: { type: String, enum: ['growing', 'ready'], default: 'ready' },

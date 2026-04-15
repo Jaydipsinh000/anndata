@@ -11,7 +11,12 @@ import landRoutes from './routes/landRoutes.js';
 import partnershipRoutes from './routes/partnershipRoutes.js';
 import toolRoutes from './routes/toolRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
+import toolBookingRoutes from './routes/toolBookingRoutes.js';
+import serviceRoutes from './routes/serviceRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
+import subscriptionRoutes from './routes/subscriptionRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
 import path from 'path';
 
 dotenv.config();
@@ -52,6 +57,11 @@ app.use('/api/lands', landRoutes);
 app.use('/api/partnerships', partnershipRoutes);
 app.use('/api/tools', toolRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/tool-bookings', toolBookingRoutes);
+app.use('/api/services', serviceRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/ai', aiRoutes);
 app.use('/api/upload', uploadRoutes);
 
 // Make 'uploads' folder statically accessible

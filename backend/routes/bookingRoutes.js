@@ -8,6 +8,6 @@ router.post('/', protect, createBooking);
 router.get('/my', protect, getMyBookings);
 router.get('/admin', protect, admin, getAdminBookings);
 router.patch('/:id/status', protect, updateBookingStatus);
-router.patch('/:id/negotiate', protect, admin, negotiateBooking);
+router.patch('/:id/negotiate', protect, negotiateBooking);
 
 export default router;
