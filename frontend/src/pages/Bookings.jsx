@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import toast from 'react-hot-toast';
-import { Loader2, Mail, CheckCircle, XCircle, Clock, Send, ShieldCheck, User, IndianRupee, Package, MessageSquare, Sprout, Wheat, FileText, Download } from 'lucide-react';
+import { Loader2, Mail, CheckCircle, XCircle, Clock, Send, ShieldCheck, User, IndianRupee, Package, MessageSquare, Sprout, Wheat, FileText, Download, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ChatModal from '../components/ChatModal';
 
@@ -224,6 +224,26 @@ function Bookings() {
                   <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Qty</p><p className="font-bold text-gray-800">{b.requested_qty || '-'} {b.crop_id?.expected_yield_unit || 'kg'}</p></div>
                   <div className="bg-green-50 border border-green-100 p-3 rounded-xl"><p className="text-[10px] font-black text-green-600 uppercase mb-1">Offered Price</p><p className="font-black text-green-700">₹{b.offered_price || b.estimated_cost}</p></div>
                 </div>
+
+                {/* Buyer Information (Farmer View Only) */}
+                {userInfo.role === 'farmer' && b.buyer_id && (
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-4">
+                    <h5 className="text-[10px] font-black text-blue-800 uppercase tracking-widest mb-3 flex items-center gap-1"><User size={12}/> Buyer Information</h5>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-gray-900">{b.buyer_id.name}</span>
+                        {b.buyer_id.trust_badge === 'verified' && <span className="flex items-center gap-1 text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-black uppercase"><ShieldCheck size={10}/> Verified</span>}
+                      </div>
+                      <p className="text-xs text-gray-600 font-medium">Completed Deals: <span className="font-bold text-gray-800">{b.buyer_id.completed_deals || 0}</span></p>
+                      <p className="text-sm font-black text-gray-800 flex items-center gap-2 mt-1">
+                        <Phone size={14} className="text-gray-400" />
+                        {['accepted', 'completed', 'buyer_confirmed'].includes(b.status)
+                          ? (b.buyer_id.mobile || 'No Mobile Provided')
+                          : (b.buyer_id.mobile ? b.buyer_id.mobile.replace(/(\d{2})\d+(\d{4})/, '$1XXXX$2') : '98XXXX1234')}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Negotiation Log */}
                 {b.negotiation_log && b.negotiation_log.length > 1 && (

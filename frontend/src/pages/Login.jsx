@@ -28,10 +28,10 @@ function Login() {
            navigate('/home');
         }
       } else {
-        setError(data.message || 'Login failed');
+        setError(t(data.message) || t('auth.loginFailed', 'Login failed'));
       }
     } catch (err) {
-      setError('An error occurred during login. Please check if the backend is running.');
+      setError(t('auth.errorLogin', 'An error occurred during login. Please check if the backend is running.'));
     }
   };
 
@@ -56,7 +56,7 @@ function Login() {
           
           {error && (
             <div className="bg-red-50/80 border-l-4 border-red-500 text-red-700 p-4 rounded-xl mb-6 shadow-sm backdrop-blur-sm">
-              <p className="font-bold">Error</p>
+              <p className="font-bold">{t('auth.errorTitle', 'Error')}</p>
               <p className="text-sm">{error}</p>
             </div>
           )}
@@ -69,7 +69,7 @@ function Login() {
                 className="p-4 bg-white/70 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006400] focus:bg-white shadow-inner transition-all duration-300"
                 value={formData.email}
                 onChange={e => setFormData({...formData, email: e.target.value})}
-                required placeholder="you@example.com"
+                required placeholder={t('auth.placeholderEmail', 'you@example.com')}
               />
             </div>
             

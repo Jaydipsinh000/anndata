@@ -17,9 +17,14 @@ const resources = {
         "lands": "Lands",
         "partnerships": "Partnerships",
         "crops": "Crops",
+        "my_crops": "My Crops",
         "tools": "Tools",
+        "tool_rentals": "Tool Rentals",
         "marketplace": "Marketplace",
-        "profile": "Profile"
+        "profile": "Profile",
+        "admin": "Admin Panel",
+        "bookings": "My Bookings",
+        "services": "Services"
       },
       "auth": {
         "registerTitle": "Register to Anndata",
@@ -173,9 +178,14 @@ const resources = {
         "lands": "ज़मीन",
         "partnerships": "साझेदारी",
         "crops": "फसलें",
+        "my_crops": "मेरी फसलें",
         "tools": "उपकरण",
+        "tool_rentals": "उपकरण का किराया",
         "marketplace": "बाज़ार",
-        "profile": "प्रोफ़ाइल"
+        "profile": "प्रोफ़ाइल",
+        "admin": "एडमिन पैनल",
+        "bookings": "मेरी बुकिंग",
+        "services": "सेवाएं"
       },
       "auth": {
         "registerTitle": "अन्नदाता पर रजिस्टर करें",
@@ -329,9 +339,14 @@ const resources = {
         "lands": "જમીન",
         "partnerships": "ભાગીદારી",
         "crops": "પાક",
+        "my_crops": "મારો પાક",
         "tools": "સાધનો",
+        "tool_rentals": "સાધનોનું ભાડું",
         "marketplace": "માર્કેટપ્લેસ",
-        "profile": "પ્રોફાઈલ"
+        "profile": "પ્રોફાઈલ",
+        "admin": "એડમિન પેનલ",
+        "bookings": "મારું બુકિંગ",
+        "services": "સેવાઓ"
       },
       "auth": {
         "registerTitle": "અન્નદાતામાં નોંધણી કરો",

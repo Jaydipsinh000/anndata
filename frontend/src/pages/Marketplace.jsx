@@ -4,8 +4,10 @@ import { Store, ShoppingCart, Sprout, Wheat, MapPin, Tag, Package, Search } from
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import CheckoutModal from '../components/CheckoutModal';
+import { useTranslation } from 'react-i18next';
 
 function Marketplace() {
+  const { t } = useTranslation();
   const [crops, setCrops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('all'); // all, ready, growing
@@ -56,7 +58,7 @@ function Marketplace() {
 
   const handleBuyNow = async (crop) => {
     if (!userInfo) return navigate('/login');
-    const toastId = toast.loading('Connecting securely to server...');
+    const toastId = toast.loading(t('marketplace.connecting', 'Connecting securely to server...'));
     try {
       const res = await fetch('/api/bookings', {
         method: 'POST',
@@ -68,6 +70,7 @@ function Marketplace() {
           crop_id: crop._id,
           farmer_id: crop.user_id?._id || crop.user_id,
           order_type: 'marketplace_purchase',
+          status: 'pending',
           requested_qty: 1,
           offered_price: crop.price,
           requirements: 'Direct marketplace purchase'
@@ -79,11 +82,11 @@ function Marketplace() {
         toast.dismiss(toastId);
         setCheckoutItem({ ...crop, booking_id: booking._id, quantity: crop.available_qty || crop.stock, unit: crop.expected_yield_unit || 'kg', price_per_unit: crop.price });
       } else {
-        toast.error('Unable to connect to server. Please try again.', { id: toastId });
+        toast.error(t('marketplace.errorConnect', 'Unable to connect to server. Please try again.'), { id: toastId });
       }
     } catch (err) {
       console.error(err);
-      toast.error('Unable to connect to server. Please try again.', { id: toastId });
+      toast.error(t('marketplace.errorConnect', 'Unable to connect to server. Please try again.'), { id: toastId });
     }
   };
 
@@ -110,10 +113,10 @@ function Marketplace() {
         <div className="absolute inset-0 bg-[url('/images/background.png')] bg-cover mix-blend-overlay opacity-10"></div>
         <div className="max-w-7xl mx-auto flex flex-col items-center justify-center relative z-10 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-green-100 font-bold mb-6 border border-white/20 backdrop-blur-md">
-            <Store size={18} /> Central Market
+            <Store size={18} /> {t('marketplace.centralMarket', 'Central Market')}
           </div>
-          <h2 className="text-white text-4xl md:text-6xl font-black mb-4 leading-tight">National Crop Exchange</h2>
-          <p className="text-green-100 text-lg font-medium max-w-2xl">Purchase harvested crops for immediate delivery or place advance bookings on growing fields to secure your supply chain.</p>
+          <h2 className="text-white text-4xl md:text-6xl font-black mb-4 leading-tight">{t('marketplace.nationalExchange', 'National Crop Exchange')}</h2>
+          <p className="text-green-100 text-lg font-medium max-w-2xl">{t('marketplace.exchangeSubtitle', 'Purchase harvested crops for immediate delivery or place advance bookings on growing fields to secure your supply chain.')}</p>
         </div>
       </div>
 
@@ -124,13 +127,13 @@ function Marketplace() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
              <div className="relative w-full md:w-1/2">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <input type="text" placeholder="Search for wheat, rice, corn..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full bg-gray-50 border-none rounded-2xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-[#006400] transition-all font-medium" />
+                <input type="text" placeholder={t('marketplace.searchPlaceholder', 'Search for wheat, rice, corn...')} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full bg-gray-50 border-none rounded-2xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-[#006400] transition-all font-medium" />
              </div>
              
              <div className="flex gap-2 w-full md:w-auto bg-gray-100 p-1.5 rounded-2xl overflow-x-auto shrink-0">
-               <button onClick={() => setFilterType('all')} className={`px-6 py-2.5 rounded-xl font-bold transition-colors whitespace-nowrap ${filterType === 'all' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}>All Assets</button>
-               <button onClick={() => setFilterType('ready')} className={`px-6 py-2.5 rounded-xl font-bold transition-colors whitespace-nowrap flex items-center gap-2 ${filterType === 'ready' ? 'bg-orange-500 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}><Wheat size={16}/> Ready Crops</button>
-               <button onClick={() => setFilterType('growing')} className={`px-6 py-2.5 rounded-xl font-bold transition-colors whitespace-nowrap flex items-center gap-2 ${filterType === 'growing' ? 'bg-green-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}><Sprout size={16}/> Advance Bookings</button>
+               <button onClick={() => setFilterType('all')} className={`px-6 py-2.5 rounded-xl font-bold transition-colors whitespace-nowrap ${filterType === 'all' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}>{t('marketplace.allAssets', 'All Assets')}</button>
+               <button onClick={() => setFilterType('ready')} className={`px-6 py-2.5 rounded-xl font-bold transition-colors whitespace-nowrap flex items-center gap-2 ${filterType === 'ready' ? 'bg-orange-500 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}><Wheat size={16}/> {t('marketplace.readyCrops', 'Ready Crops')}</button>
+               <button onClick={() => setFilterType('growing')} className={`px-6 py-2.5 rounded-xl font-bold transition-colors whitespace-nowrap flex items-center gap-2 ${filterType === 'growing' ? 'bg-green-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}><Sprout size={16}/> {t('marketplace.advanceBookings', 'Advance Bookings')}</button>
              </div>
           </div>
           

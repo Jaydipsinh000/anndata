@@ -36,14 +36,21 @@ function CheckoutModal({ item, onClose }) {
 
     try {
       const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-      const payload = {
+      
+      const payload = item.booking_id ? {
+        status: 'buyer_confirmed',
+        final_qty: qty
+      } : {
         item_id: item._id,
         quantity: qty,
         total_amount: basePrice * qty
       };
 
-      const res = await fetch('/api/marketplace/order', {
-        method: 'POST',
+      const endpoint = item.booking_id ? `/api/bookings/${item.booking_id}/status` : '/api/marketplace/order';
+      const method = item.booking_id ? 'PATCH' : 'POST';
+
+      const res = await fetch(endpoint, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${userInfo.token}`

@@ -31,10 +31,10 @@ function Register() {
         localStorage.setItem('userInfo', JSON.stringify(data));
         navigate('/home');
       } else {
-        setError(data.message || 'Registration failed');
+        setError(t(data.message) || t('auth.registrationFailed', 'Registration failed'));
       }
     } catch (err) {
-      setError('An error occurred during registration. Please check if the backend is running.');
+      setError(t('auth.errorRegister', 'An error occurred during registration. Please check if the backend is running.'));
     }
   };
 
@@ -59,7 +59,7 @@ function Register() {
           
           {error && (
             <div className="bg-red-50/80 border-l-4 border-red-500 text-red-700 p-4 rounded-xl mb-6 shadow-sm backdrop-blur-sm">
-              <p className="font-bold">Error</p>
+              <p className="font-bold">{t('auth.errorTitle', 'Error')}</p>
               <p className="text-sm">{error}</p>
             </div>
           )}
@@ -68,26 +68,26 @@ function Register() {
             <div className="flex flex-col group">
               <label className="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider group-focus-within:text-[#006400] transition-colors">{t('auth.fullName')}</label>
               <input type="text" className="p-4 bg-white/70 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006400] focus:bg-white shadow-inner transition-all duration-300" 
-                     value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required placeholder="John Doe" />
+                     value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required placeholder={t('auth.placeholderName', 'John Doe')} />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="flex flex-col group">
                 <label className="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider group-focus-within:text-[#006400] transition-colors">{t('auth.email')}</label>
                 <input type="email" className="p-4 bg-white/70 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006400] focus:bg-white shadow-inner transition-all duration-300" 
-                       value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required placeholder="you@example.com" />
+                       value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required placeholder={t('auth.placeholderEmail', 'you@example.com')} />
               </div>
               <div className="flex flex-col group">
                 <label className="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider group-focus-within:text-[#006400] transition-colors">{t('auth.mobile')}</label>
                 <input type="text" className="p-4 bg-white/70 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006400] focus:bg-white shadow-inner transition-all duration-300" 
-                       value={formData.mobile} onChange={e => setFormData({...formData, mobile: e.target.value})} required placeholder="+91 90000 00000" />
+                       value={formData.mobile} onChange={e => setFormData({...formData, mobile: e.target.value})} required placeholder={t('auth.placeholderMobile', '+91 90000 00000')} />
               </div>
             </div>
 
             <div className="flex flex-col group">
               <label className="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider group-focus-within:text-[#006400] transition-colors">{t('auth.address')}</label>
               <textarea className="p-4 bg-white/70 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006400] focus:bg-white shadow-inner transition-all duration-300 resize-none h-24" 
-                        value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} required placeholder="123 Farm Lane, Village..."></textarea>
+                        value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} required placeholder={t('auth.placeholderAddress', '123 Farm Lane, Village...')}></textarea>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -97,7 +97,7 @@ function Register() {
                        value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required placeholder="••••••••" />
               </div>
               <div className="flex flex-col group">
-                <label className="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider group-focus-within:text-[#006400] transition-colors">{t('auth.role')}</label>
+                <label className="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider group-focus-within:text-[#006400] transition-colors">{t('auth.role', 'Role')}</label>
                 <div className="relative">
                   <select className="w-full p-4 bg-white/70 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006400] focus:bg-white shadow-inner transition-all duration-300 appearance-none font-medium" 
                           value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>

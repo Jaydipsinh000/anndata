@@ -1,35 +1,29 @@
 import express from 'express';
 import multer from 'multer';
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import path from 'path';
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename(req, file, cb) {
-    cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+// Configuration for Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'anndata_uploads',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'mp4'],
+    resource_type: 'auto'
   }
 });
 
-function checkFileType(file, cb) {
-  const filetypes = /jpg|jpeg|png|webp|mp4/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
-
-  if (extname && mimetype) {
-    return cb(null, true);
-  } else {
-    cb('Images and MP4 Videos only!');
-  }
-}
-
 const upload = multer({
-  storage,
-  fileFilter: function(req, file, cb) {
-    checkFileType(file, cb);
-  }
+  storage
 });
 
 router.post('/', upload.array('media', 5), (req, res) => {
@@ -37,8 +31,8 @@ router.post('/', upload.array('media', 5), (req, res) => {
     return res.status(400).send('No multi-media uploaded');
   }
 
-  const filePaths = req.files.map(file => `/${file.path.replace(/\\/g, '/')}`);
-  res.json({ message: 'Files uploaded securely', paths: filePaths });
+  const filePaths = req.files.map(file => file.path);
+  res.json({ message: 'Files uploaded securely to Cloudinary', paths: filePaths });
 });
 
 export default router;

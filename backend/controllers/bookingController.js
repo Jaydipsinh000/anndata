@@ -72,10 +72,10 @@ export const getAdminBookings = async (req, res) => {
   }
 };
 
-// Admin/Farmer: Update booking status
+// Admin/Farmer/Buyer: Update booking status
 export const updateBookingStatus = async (req, res) => {
   try {
-    const { status, message } = req.body;
+    const { status, message, final_qty } = req.body;
     const booking = await AdvanceBooking.findById(req.params.id)
        .populate('buyer_id', 'name email')
        .populate('farmer_id', 'name email');
@@ -89,6 +89,10 @@ export const updateBookingStatus = async (req, res) => {
       if (message) booking.farmer_message = message;
     } else if (['admin', 'superadmin'].includes(req.user.role)) {
       if (message) booking.admin_message = message;
+    }
+
+    if (final_qty !== undefined) {
+      booking.final_qty = final_qty;
     }
 
     // When admin accepts → reserve the quantity on the crop

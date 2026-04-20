@@ -43,9 +43,9 @@ function LanguageSelector() {
         </div>
 
         <h1 className="text-4xl font-extrabold mb-4 text-[#1b431b]">
-          Welcome to <span className="text-gradient">અન્નદાતા</span>
+          {t('app.welcome', 'Welcome to')} <span className="text-gradient">અન્નદાતા</span>
         </h1>
-        <p className="text-gray-600 mb-8 text-lg font-medium">Please select your preferred language to continue</p>
+        <p className="text-gray-600 mb-8 text-lg font-medium">{t('app.selectLang', 'Please select your preferred language to continue')}</p>
 
         <div className="flex flex-col gap-4 my-6">
           {langs.map((lang) => (
@@ -76,7 +76,7 @@ function LanguageSelector() {
             onClick={() => navigate(`/home`)}
             className="flex items-center justify-center gap-2 w-full px-6 py-4 rounded-2xl font-bold text-[#1b431b] bg-white border border-green-100 hover:bg-gray-50 hover:border-green-200 transition-all shadow-sm hover:shadow group"
           >
-            <span>Continue as Guest</span>
+            <span>{t('app.continueGuest', 'Continue as Guest')}</span>
             <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
           </button>
           <button 
@@ -84,7 +84,7 @@ function LanguageSelector() {
              className="flex items-center justify-center gap-2 w-full px-6 py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-[#FF9800] to-[#F57C00] hover:from-[#F57C00] hover:to-[#EF6C00] transition-all shadow-md hover:shadow-lg shadow-orange-500/30 transform hover:-translate-y-0.5"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-            <span>Login / Register</span>
+            <span>{t('app.loginRegister', 'Login / Register')}</span>
           </button>
         </div>
       </div>
