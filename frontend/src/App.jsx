@@ -16,7 +16,7 @@ import Services from './pages/Services';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function LanguageSelector() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const [selectedLang, setSelectedLang] = useState(localStorage.getItem('selectedLang') || 'en');
   const navigate = useNavigate();
 
