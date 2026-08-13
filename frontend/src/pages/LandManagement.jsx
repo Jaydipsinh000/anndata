@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { useTranslation } from 'react-i18next';
-import { Map, MapPin, Plus, Clock, XCircle, CheckCircle, FileText, Trash2 } from 'lucide-react';
+import { Map, MapPin, Plus, Clock, XCircle, CheckCircle, FileText, Trash2, Award, Handshake, Landmark } from 'lucide-react';
 import { translateText } from '../utils/translate';
 import LandUploadForm from '../components/farmer/LandUploadForm';
+import OfficialAgreementModal from '../components/farmer/OfficialAgreementModal';
 
 function LandManagement() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [lands, setLands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [selectedAgreementLand, setSelectedAgreementLand] = useState(null);
 
   useEffect(() => {
     const userInfoStr = localStorage.getItem('userInfo');
@@ -30,6 +32,7 @@ function LandManagement() {
         setLoading(false);
       })
       .catch(err => {
+        console.error(err);
         setLands([]);
         setLoading(false);
       });
@@ -55,10 +58,37 @@ function LandManagement() {
     }
   };
 
+  // Helper date formatters
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString(i18n.language === 'gu' ? 'gu-IN' : (i18n.language === 'hi' ? 'hi-IN' : 'en-IN'), { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  const getStartDate = (land) => {
+    if (land.contract_start_date) return formatDate(land.contract_start_date);
+    if (land.createdAt) return formatDate(land.createdAt);
+    return formatDate(new Date());
+  };
+
+  const getEndDate = (land) => {
+    if (land.contract_end_date) return formatDate(land.contract_end_date);
+    const start = land.contract_start_date ? new Date(land.contract_start_date) : (land.createdAt ? new Date(land.createdAt) : new Date());
+    const years = land.lease_duration_years || 5;
+    const end = new Date(start);
+    end.setFullYear(end.getFullYear() + years);
+    return formatDate(end);
+  };
+
   return (
     <div className="min-h-screen bg-[#f8fafc] font-sans pb-20 selection:bg-[#006400] selection:text-white">
       <Navbar />
       
+      {/* Hero Header */}
       <div className="bg-gradient-to-r from-[#004d00] to-[#2ecc71] py-16 px-4 mb-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/images/background.png')] bg-cover mix-blend-overlay opacity-20"></div>
         <div className="max-w-4xl mx-auto relative z-10 text-center">
@@ -115,6 +145,7 @@ function LandManagement() {
                 </div>
 
                 <div className="p-8 flex-grow flex flex-col relative z-10 bg-white">
+                   {/* PENDING REVIEW */}
                    {land.status === 'pending' && (
                       <div className="bg-orange-50 border border-orange-100 text-orange-700 p-5 rounded-2xl mb-4 flex items-start gap-4">
                          <Clock className="shrink-0 mt-0.5" />
@@ -125,6 +156,7 @@ function LandManagement() {
                       </div>
                    )}
 
+                   {/* REJECTED */}
                    {land.status === 'rejected' && (
                       <div className="bg-red-50 border border-red-100 text-red-700 p-5 rounded-2xl mb-4 flex flex-col gap-3">
                          <div className="flex items-start gap-4">
@@ -143,56 +175,117 @@ function LandManagement() {
                       </div>
                    )}
 
+                   {/* 1. CORPORATE LEASE ACTIVE CARD (RENT) */}
                    {land.status === 'rented_to_company' && (
-                      <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 text-indigo-900 p-6 rounded-3xl mb-4 shadow-sm relative overflow-hidden">
-                         <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl"></div>
-                         <div className="flex items-start gap-4 relative z-10">
-                            <div className="bg-indigo-600 p-3 rounded-2xl text-white shadow-lg"><FileText className="shrink-0" size={24} /></div>
-                            <div className="w-full">
-                               <p className="font-bold uppercase tracking-widest text-[10px] text-indigo-500 mb-1">Corporate Lease Active</p>
-                               <h4 className="font-black text-xl mb-4">Official Agreement</h4>
-                               
-                               <div className="space-y-4">
-                                  <div className="flex justify-between items-end border-b border-indigo-200/50 pb-2">
-                                    <div className="text-sm">
-                                      <p className="text-indigo-400 font-bold uppercase tracking-widest text-[10px]">Start Date</p>
-                                      <p className="font-bold">{land.contract_start_date ? new Date(land.contract_start_date).toLocaleDateString() : 'N/A'}</p>
-                                    </div>
-                                    <div className="text-right text-sm">
-                                      <p className="text-indigo-400 font-bold uppercase tracking-widest text-[10px]">End Date</p>
-                                      <p className="font-bold">{land.contract_end_date ? new Date(land.contract_end_date).toLocaleDateString() : 'N/A'}</p>
-                                    </div>
-                                  </div>
+                      <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 border-2 border-indigo-400/80 text-white p-6 rounded-3xl mb-4 shadow-xl relative overflow-hidden group/card">
+                         <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                         
+                         <div className="flex items-center justify-between mb-4 border-b border-indigo-700/50 pb-3">
+                            <div className="flex items-center gap-2 text-indigo-300 font-black text-xs uppercase tracking-widest">
+                               <Award size={18} className="shrink-0 text-indigo-400" />
+                               <span>Corporate Lease Active</span>
+                            </div>
+                            <span className="bg-indigo-400/20 text-indigo-200 border border-indigo-400/40 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
+                               Verified Lease
+                            </span>
+                         </div>
 
-                                  <div className="flex justify-between items-center bg-white/60 p-3 rounded-xl border border-indigo-100">
-                                     <span className="text-xs font-bold text-indigo-500 uppercase">Payout Schedule</span>
-                                     <span className="font-black text-indigo-700 capitalize">{translateText((land.payout_frequency || '').replace('-', ' '))}</span>
-                                  </div>
-                                  
-                                  <p className="text-sm font-medium bg-white/70 p-4 rounded-xl border border-indigo-100 shadow-sm italic text-indigo-800">
-                                    "{translateText(land.admin_message)}"
-                                  </p>
+                         <div className="space-y-3">
+                            <div className="bg-white/10 p-3 rounded-2xl border border-white/10 flex justify-between items-center text-xs">
+                               <div>
+                                  <span className="text-indigo-200 font-bold block text-[9px] uppercase tracking-wider">Start Date</span>
+                                  <span className="font-extrabold text-white text-sm">{getStartDate(land)}</span>
+                               </div>
+                               <div className="text-right">
+                                  <span className="text-indigo-200 font-bold block text-[9px] uppercase tracking-wider">End Date</span>
+                                  <span className="font-extrabold text-indigo-300 text-sm">{getEndDate(land)}</span>
                                </div>
                             </div>
+
+                            <div className="bg-white/5 p-3 rounded-2xl border border-white/10 flex justify-between items-center text-xs">
+                               <span className="text-indigo-200 font-bold">Payout Schedule:</span>
+                               <span className="font-black text-emerald-400 capitalize">{translateText(land.payout_frequency || 'Yearly')}</span>
+                            </div>
+
+                            <button 
+                              onClick={() => setSelectedAgreementLand(land)}
+                              className="w-full mt-2 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl font-black text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 cursor-pointer"
+                            >
+                               <FileText size={16} /> View Corporate Lease Deed (લીઝ કરાર જુઓ)
+                            </button>
                          </div>
                       </div>
                    )}
 
-                   {(land.status === 'partnership_active' || land.status === 'sold') && (
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 text-[#006400] p-5 rounded-2xl mb-4 flex items-start gap-4 shadow-inner">
-                         <CheckCircle className="shrink-0 mt-0.5" />
-                         <div>
-                            <p className="font-bold uppercase tracking-widest text-[10px] bg-[#006400] text-white inline-block px-2 py-0.5 rounded-md mb-1">{translateText(land.status.replace(/_/g, ' '))}</p>
-                            <p className="font-black text-lg mb-1">{t('land.dealFinalized')}</p>
-                            <p className="text-sm font-bold bg-white/70 p-3 mt-2 rounded-xl border border-green-100 shadow-sm">{translateText(land.admin_message)}</p>
+                   {/* 2. CORPORATE PARTNERSHIP ACTIVE CARD */}
+                   {land.status === 'partnership_active' && (
+                      <div className="bg-gradient-to-br from-emerald-950 via-teal-950 to-emerald-900 border-2 border-emerald-400/80 text-white p-6 rounded-3xl mb-4 shadow-xl relative overflow-hidden">
+                         <div className="flex items-center justify-between mb-4 border-b border-emerald-700/50 pb-3">
+                            <div className="flex items-center gap-2 text-emerald-300 font-black text-xs uppercase tracking-widest">
+                               <Handshake size={18} className="shrink-0 text-emerald-400" />
+                               <span>Joint Venture Active</span>
+                            </div>
+                            <span className="bg-emerald-400/20 text-emerald-200 border border-emerald-400/40 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
+                               50-50 Partnership
+                            </span>
+                         </div>
+
+                         <div className="space-y-3">
+                            <div className="bg-white/10 p-3 rounded-2xl border border-white/10 flex justify-between items-center text-xs">
+                               <div>
+                                  <span className="text-emerald-200 font-bold block text-[9px] uppercase tracking-wider">Venture Term</span>
+                                  <span className="font-extrabold text-white text-sm">{getStartDate(land)} - {getEndDate(land)}</span>
+                               </div>
+                            </div>
+
+                            <div className="bg-white/5 p-3 rounded-2xl border border-white/10 flex justify-between items-center text-xs">
+                               <span className="text-emerald-200 font-bold">Profit Sharing:</span>
+                               <span className="font-black text-amber-300">{land.profit_sharing_ratio || '50-50 Split'}</span>
+                            </div>
+
+                            <button 
+                              onClick={() => setSelectedAgreementLand(land)}
+                              className="w-full mt-2 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-950 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer"
+                            >
+                               <FileText size={16} /> View Partnership Contract (ભાગીદારી કરાર જુઓ)
+                            </button>
+                         </div>
+                      </div>
+                   )}
+
+                   {/* 3. SOLD CARD */}
+                   {land.status === 'sold' && (
+                      <div className="bg-gradient-to-br from-amber-950 via-stone-900 to-amber-900 border-2 border-amber-500/80 text-white p-6 rounded-3xl mb-4 shadow-xl relative overflow-hidden">
+                         <div className="flex items-center justify-between mb-4 border-b border-amber-700/50 pb-3">
+                            <div className="flex items-center gap-2 text-amber-300 font-black text-xs uppercase tracking-widest">
+                               <Landmark size={18} className="shrink-0 text-amber-400" />
+                               <span>Property Transferred</span>
+                            </div>
+                            <span className="bg-amber-400/20 text-amber-200 border border-amber-400/40 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
+                               Title Deed Sold
+                            </span>
+                         </div>
+
+                         <div className="space-y-3">
+                            <div className="bg-white/10 p-3 rounded-2xl border border-white/10 flex justify-between items-center text-xs">
+                               <span className="text-amber-200 font-bold">Transfer Date:</span>
+                               <span className="font-black text-white">{getStartDate(land)}</span>
+                            </div>
+
+                            <button 
+                              onClick={() => setSelectedAgreementLand(land)}
+                              className="w-full mt-2 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer"
+                            >
+                               <FileText size={16} /> View Title Transfer Deed (વેચાણ પત્ર જુઓ)
+                            </button>
                          </div>
                       </div>
                    )}
 
                    <div className="mt-auto space-y-3 pt-6 border-t border-dashed border-gray-200">
                       <div className="flex justify-between items-center text-sm font-bold">
-                         <span className="text-gray-400">Asking Price</span>
-                         <span className="text-[#006400]">₹ {land.price.toLocaleString()}</span>
+                         <span className="text-gray-400">{land.purpose === 'partnership' ? 'Partnership Capital' : (land.purpose === 'sell' ? 'Asking Price' : 'Annual Rent')}</span>
+                         <span className="text-[#006400] text-lg font-black">₹ {land.price.toLocaleString()}</span>
                       </div>
                    </div>
 
@@ -208,9 +301,15 @@ function LandManagement() {
         onClose={() => setIsUploadOpen(false)}
         onSuccess={(newLand) => setLands([newLand, ...lands])}
       />
+
+      {/* ULTRA PROFESSIONAL MULTILINGUAL AGREEMENT CERTIFICATE MODAL */}
+      <OfficialAgreementModal 
+        land={selectedAgreementLand} 
+        onClose={() => setSelectedAgreementLand(null)} 
+      />
+
     </div>
   );
 }
 
 export default LandManagement;
-
