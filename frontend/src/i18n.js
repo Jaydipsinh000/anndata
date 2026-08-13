@@ -4,13 +4,28 @@ import { initReactI18next } from 'react-i18next';
 const resources = {
   en: {
     translation: {
+      "app": {
+        "welcome": "Welcome to",
+        "selectLang": "Please select your preferred language to continue",
+        "continueGuest": "Continue as Guest",
+        "loginRegister": "Login / Register"
+      },
       "home": {
         "welcome": "Welcome to Anndata",
         "subtitle": "Empowering Farmers, Connecting Markets.",
+        "badge": "Empowering Modern Agriculture",
         "getStarted": "Get Started",
+        "exploreMarket": "Explore Market",
         "aboutTitle": "About Anndata Portal",
         "aboutP1": "Anndata is a dedicated platform designed to support farmers and agricultural workers. We provide tools for crop management, access to marketplaces, and a platform for equipment rental.",
-        "aboutP2": "Whether you are a farmer looking to sell your crops or someone searching for organic products and farming tools, Anndata brings everything together in one place."
+        "aboutP2": "Whether you are a farmer looking to sell your crops or someone searching for organic products and farming tools, Anndata brings everything together in one place.",
+        "featLandTitle": "Smart Land Management",
+        "featLandDesc": "Digital land records, soil health tracking, and resource allocation.",
+        "featMarketTitle": "Direct Market Access",
+        "featMarketDesc": "Bypass middlemen and sell your produce directly to verified buyers.",
+        "featOrganicTitle": "Sustainable Practices",
+        "featOrganicDesc": "Expert guidance and community support for modern organic farming.",
+        "copyright": "Anndata Portal. Cultivating a better tomorrow."
       },
       "nav": {
         "home": "Home",
@@ -27,6 +42,9 @@ const resources = {
         "services": "Services"
       },
       "auth": {
+        "register": "Register",
+        "login": "Login",
+        "logout": "Sign Out",
         "registerTitle": "Register to Anndata",
         "loginTitle": "Login to Anndata",
         "fullName": "Full Name",
@@ -47,7 +65,32 @@ const resources = {
       "profile": {
         "title": "Your Profile",
         "personalInfo": "Personal Information",
-        "logout": "Sign Out"
+        "logout": "Sign Out",
+        "role": "Account Role",
+        "joined": "Member Since"
+      },
+      "crops": {
+        "title": "My Crop Portfolio",
+        "subtitle": "Control panel for your growing and ready-to-sell crops.",
+        "listNew": "List New Crop",
+        "growingSection": "Growing Crops (In Field)",
+        "readySection": "Ready to Sell",
+        "noReady": "No ready crops yet",
+        "markHarvested": "Mark as Harvested",
+        "confirmHarvest": "Confirm Harvest",
+        "cancel": "Cancel",
+        "area": "Area",
+        "yield": "Expected Yield",
+        "harvestDate": "Harvest Date",
+        "priceUnit": "Price/Unit",
+        "available": "Available",
+        "season": "Season",
+        "growingDetails": "Growing Crop Details",
+        "readyDetails": "Ready Crop Details",
+        "sowingDate": "Sowing Date",
+        "expectedHarvest": "Expected Harvest",
+        "enableAdvance": "Enable Advance Booking for Buyers",
+        "submitCrop": "Submit Crop for Approval"
       },
       "land": {
         "heroTitle": "My Land Portfolio",
@@ -154,6 +197,34 @@ const resources = {
           "pieces": "Pieces"
         }
       },
+      "partnerships": {
+        "title": "Farm Partnerships & Investments",
+        "subtitle": "Collaborate with verified agricultural investors, co-farmers, and suppliers.",
+        "create": "Create Partnership Request",
+        "noItems": "No partnership requests active right now."
+      },
+      "services": {
+        "title": "Agricultural Services Hub",
+        "subtitle": "Book professional tractor plowing, drone spraying, harvesting, and soil testing services.",
+        "bookNow": "Book Service Now",
+        "myBookings": "My Service Bookings",
+        "noServices": "No services available currently."
+      },
+      "bookings": {
+        "title": "My Bookings & Rentals",
+        "subtitle": "Track your active tool rentals, service appointments, and crop purchases.",
+        "toolsTab": "Tool Rentals",
+        "servicesTab": "Services Booked",
+        "noBookings": "No active bookings found."
+      },
+      "admin": {
+        "title": "Admin Command Center",
+        "subtitle": "System oversight, crop approvals, land verification, and deal analytics.",
+        "cropsApproval": "Crop Approvals",
+        "landVerification": "Land Verification",
+        "userManagement": "User Management",
+        "stats": "System Statistics"
+      },
       "checkout": {
         "title": "Secure Checkout",
         "total": "Total Payable",
@@ -165,13 +236,28 @@ const resources = {
   },
   hi: {
     translation: {
+      "app": {
+        "welcome": "स्वागत है",
+        "selectLang": "कृपया जारी रखने के लिए अपनी पसंदीदा भाषा चुनें",
+        "continueGuest": "गेस्ट के रूप में जारी रखें",
+        "loginRegister": "लॉगिन / रजिस्टर"
+      },
       "home": {
         "welcome": "अन्नदाता (Anndata) में आपका स्वागत है",
         "subtitle": "किसानों को सशक्त बनाना, बाजारों को जोड़ना।",
+        "badge": "आधुनिक कृषि का सशक्तिकरण",
         "getStarted": "शुरू करें",
+        "exploreMarket": "बाज़ार देखें",
         "aboutTitle": "अन्नदाता पोर्टल के बारे में",
         "aboutP1": "अन्नदाता किसानों और खेतिहर मजदूरों का समर्थन करने के लिए बनाया गया एक समर्पित मंच है। हम फसल प्रबंधन के लिए उपकरण, बाजारों तक पहुंच और उपकरण किराये पर लेने के लिए एक मंच प्रदान करते हैं।",
-        "aboutP2": "चाहे आप अपनी फसल बेचने के लिए एक किसान हों या जैविक उत्पादों और खेती के उपकरणों की तलाश में हों, अन्नदाता सब कुछ एक ही स्थान पर लाता है।"
+        "aboutP2": "चाहे आप अपनी फसल बेचने के लिए एक किसान हों या जैविक उत्पादों और खेती के उपकरणों की तलाश में हों, अन्नदाता सब कुछ एक ही स्थान पर लाता है।",
+        "featLandTitle": "स्मार्ट भूमि प्रबंधन",
+        "featLandDesc": "डिजिटल भूमि रिकॉर्ड, मिट्टी के स्वास्थ्य की निगरानी और संसाधन आवंटन।",
+        "featMarketTitle": "सीधी बाजार पहुंच",
+        "featMarketDesc": "बिचौलियों को हटाएं और अपनी उपज सीधे सत्यापित खरीदारों को बेचें।",
+        "featOrganicTitle": "सतत खेती पद्धतियां",
+        "featOrganicDesc": "आधुनिक जैविक खेती के लिए विशेषज्ञ सलाह और सामुदायिक सहायता।",
+        "copyright": "अन्नदाता पोर्टल। एक बेहतर कल की ओर।"
       },
       "nav": {
         "home": "होम",
@@ -188,6 +274,9 @@ const resources = {
         "services": "सेवाएं"
       },
       "auth": {
+        "register": "रजिस्टर करें",
+        "login": "लॉगिन करें",
+        "logout": "लॉग आउट करें",
         "registerTitle": "अन्नदाता पर रजिस्टर करें",
         "loginTitle": "अन्नदाता में लॉगिन करें",
         "fullName": "पूरा नाम",
@@ -208,7 +297,32 @@ const resources = {
       "profile": {
         "title": "आपकी प्रोफ़ाइल",
         "personalInfo": "व्यक्तिगत जानकारी",
-        "logout": "लॉग आउट करें"
+        "logout": "लॉग आउट करें",
+        "role": "खाता प्रकार",
+        "joined": "जुड़ने की तिथि"
+      },
+      "crops": {
+        "title": "मेरा फसल पोर्टफोलियो",
+        "subtitle": "आपकी बढ़ती हुई और बेचने योग्य फसलों का नियंत्रण केंद्र।",
+        "listNew": "नई फसल दर्ज करें",
+        "growingSection": "खेत में बढ़ती फसलें",
+        "readySection": "बेचने के लिए तैयार फसलें",
+        "noReady": "अभी कोई तैयार फसल नहीं है",
+        "markHarvested": "कटाई (Harvest) के रूप में चिह्नित करें",
+        "confirmHarvest": "कटाई की पुष्टि करें",
+        "cancel": "रद्द करें",
+        "area": "क्षेत्रफल",
+        "yield": "अनुमानित उपज",
+        "harvestDate": "कटाई की तारीख",
+        "priceUnit": "कीमत / इकाई",
+        "available": "उपलब्ध मात्रा",
+        "season": "मौसम",
+        "growingDetails": "बढ़ती फसल का विवरण",
+        "readyDetails": "तैयार फसल का विवरण",
+        "sowingDate": "बुआई की तारीख",
+        "expectedHarvest": "अपेक्षित कटाई",
+        "enableAdvance": "खरीदारों के लिए एडवांस बुकिंग चालू करें",
+        "submitCrop": "स्वीकृति के लिए फसल सबमिट करें"
       },
       "land": {
         "heroTitle": "मेरी ज़मीन का पोर्टफोलियो",
@@ -315,6 +429,34 @@ const resources = {
           "pieces": "नग (Pieces)"
         }
       },
+      "partnerships": {
+        "title": "कृषि साझेदारी और निवेश",
+        "subtitle": "सत्यापित कृषि निवेशकों, सह-किसानों और आपूर्तिकर्ताओं के साथ सहयोग करें।",
+        "create": "साझेदारी अनुरोध बनाएं",
+        "noItems": "वर्तमान में कोई साझेदारी अनुरोध सक्रिय नहीं है।"
+      },
+      "services": {
+        "title": "कृषि सेवा केंद्र",
+        "subtitle": "ट्रैक्टर जोताई, ड्रोन छिड़काव, फसल कटाई और मिट्टी परीक्षण सेवाएं बुक करें।",
+        "bookNow": "अभी सेवा बुक करें",
+        "myBookings": "मेरी सेवा बुकिंग",
+        "noServices": "वर्तमान में कोई सेवा उपलब्ध नहीं है।"
+      },
+      "bookings": {
+        "title": "मेरी बुकिंग और किराये",
+        "subtitle": "अपने सक्रिय उपकरण किराये, सेवा नियुक्तियों और फसल की खरीदारी पर नज़र रखें।",
+        "toolsTab": "उपकरण किराया",
+        "servicesTab": "बुक की गई सेवाएं",
+        "noBookings": "कोई सक्रिय बुकिंग नहीं मिली।"
+      },
+      "admin": {
+        "title": "एडमिन कंट्रोल सेंटर",
+        "subtitle": "सिस्टम निगरानी, फसल स्वीकृति, भूमि सत्यापन और सौदों का विश्लेषण।",
+        "cropsApproval": "फसल स्वीकृति",
+        "landVerification": "भूमि सत्यापन",
+        "userManagement": "उपयोगकर्ता प्रबंधन",
+        "stats": "सिस्टम आंकड़े"
+      },
       "checkout": {
         "title": "सुरक्षित चेकआउट",
         "total": "कुल देय राशि",
@@ -326,13 +468,28 @@ const resources = {
   },
   gu: {
     translation: {
+      "app": {
+        "welcome": "સ્વાગત છે",
+        "selectLang": "કૃપા કરીને આગળ વધવા માટે તમારી પસંદગીની ભાષા પસંદ કરો",
+        "continueGuest": "મહેમાન તરીકે આગળ વધો",
+        "loginRegister": "લોગિન / નોંધણી કરો"
+      },
       "home": {
         "welcome": "અન્નદાતા (Anndata) માં તમારું સ્વાગત છે",
         "subtitle": "ખેડૂતોને સશક્ત બનાવવા, બજારોને જોડવા.",
+        "badge": "આધુનિક કૃષિનું સશક્તિકરણ",
         "getStarted": "શરૂ કરો",
+        "exploreMarket": "બજાર જુઓ",
         "aboutTitle": "અન્નદાતા પોર્ટલ વિશે",
         "aboutP1": "અન્નદાતા એ ખેડૂતો અને ખેતમજૂરોને ટેકો આપવા માટે રચાયેલ એક સમર્પિત પ્લેટફોર્મ છે. અમે પાક વ્યવસ્થાપન માટેના સાધનો, બજારોમાં પ્રવેશ અને સાધનોના ભાડા માટેનું પ્લેટફોર્મ પ્રદાન કરીએ છીએ.",
-        "aboutP2": "ભલે તમે પાક વેચવા માંગતા ખેડૂત હોવ અથવા જૈવિક ઉત્પાદનો અને ખેતીના સાધનો શોધી રહ્યા હોવ, અન્નદાતા બધું એક જ જગ્યાએ લાવે છે."
+        "aboutP2": "ભલે તમે પાક વેચવા માંગતા ખેડૂત હોવ અથવા જૈવિક ઉત્પાદનો અને ખેતીના સાધનો શોધી રહ્યા હોવ, અન્નદાતા બધું એક જ જગ્યાએ લાવે છે.",
+        "featLandTitle": "સ્માર્ટ જમીન વ્યવસ્થાપન",
+        "featLandDesc": "ડિજિટલ જમીન રેકોર્ડ્સ, જમીન આરોગ્ય ટ્રેકિંગ અને સંસાધન ફાળવણી.",
+        "featMarketTitle": "સીધો બજાર પ્રવેશ",
+        "featMarketDesc": "વચેટિયાઓને દૂર કરો અને તમારી ઉપજ સીધી ચકાસાયેલ ખરીદદારોને વેચો.",
+        "featOrganicTitle": "ટકાઉ ખેતી પદ્ધતિઓ",
+        "featOrganicDesc": "આધુનિક જૈવિક ખેતી માટે નિષ્ણાત માર્ગદર્શન અને સમુદાય સહયોગ.",
+        "copyright": "અન્નદાતા પોર્ટલ. એક સારા આવતીકાલ તરફ."
       },
       "nav": {
         "home": "હોમ",
@@ -349,6 +506,9 @@ const resources = {
         "services": "સેવાઓ"
       },
       "auth": {
+        "register": "નોંધણી કરો",
+        "login": "લોગિન કરો",
+        "logout": "લોગ આઉટ કરો",
         "registerTitle": "અન્નદાતામાં નોંધણી કરો",
         "loginTitle": "અન્નદાતામાં લોગિન કરો",
         "fullName": "પૂરું નામ",
@@ -369,7 +529,32 @@ const resources = {
       "profile": {
         "title": "તમારી પ્રોફાઇલ",
         "personalInfo": "વ્યક્તિગત માહિતી",
-        "logout": "લોગ આઉટ કરો"
+        "logout": "લોગ આઉટ કરો",
+        "role": "ખાતાનો પ્રકાર",
+        "joined": "જોડાવાની તારીખ"
+      },
+      "crops": {
+        "title": "મારો પાક પોર્ટફોલિયો",
+        "subtitle": "તમારા ઉગતા અને વેચવા માટે તૈયાર પાકનું નિયંત્રણ કેન્દ્ર.",
+        "listNew": "નવો પાક ઉમેરો",
+        "growingSection": "ખેતરમાં ઉગતો પાક",
+        "readySection": "વેચાણ માટે તૈયાર પાક",
+        "noReady": "હજુ સુધી કોઈ તૈયાર પાક નથી",
+        "markHarvested": "લણણી (Harvest) તરીકે માર્ક કરો",
+        "confirmHarvest": "લણણીની પુષ્ટિ કરો",
+        "cancel": "રદ કરો",
+        "area": "વિસ્તાર",
+        "yield": "અપેક્ષિત ઉત્પાદન",
+        "harvestDate": "લણણીની તારીખ",
+        "priceUnit": "કિંમત / એકમ",
+        "available": "ઉપલબ્ધ જથ્થો",
+        "season": "સિઝન",
+        "growingDetails": "ઉગતા પાકની વિગતો",
+        "readyDetails": "તૈયાર પાકની વિગતો",
+        "sowingDate": "વાવણીની તારીખ",
+        "expectedHarvest": "અપેક્ષિત લણણી",
+        "enableAdvance": "ખરીદદારો માટે એડવાન્સ બુકિંગ ચાલુ કરો",
+        "submitCrop": "મંજૂરી માટે પાક સબમિટ કરો"
       },
       "land": {
         "heroTitle": "મારો જમીનનો પોર્ટફોલિયો",
@@ -475,6 +660,34 @@ const resources = {
           "quintal": "ક્વિન્ટલ",
           "pieces": "નંગ"
         }
+      },
+      "partnerships": {
+        "title": "કૃષિ ભાગીદારી અને રોકાણ",
+        "subtitle": "ચકાસાયેલ કૃષિ રોકાણકારો, સહ-ખેડૂતો અને સપ્લાયર્સ સાથે સહયોગ કરો.",
+        "create": "ભાગીદારી વિનંતી બનાવો",
+        "noItems": "હાલમાં કોઈ ભાગીદારી વિનંતી સક્રિય નથી."
+      },
+      "services": {
+        "title": "કૃષિ સેવા કેન્દ્ર",
+        "subtitle": "ટ્રેક્ટર ખેડાણ, ડ્રોન છંટકાવ, લણણી અને જમીન પરીક્ષણ સેવાઓ બુક કરો.",
+        "bookNow": "હવે સેવા બુક કરો",
+        "myBookings": "મારું સેવા બુકિંગ",
+        "noServices": "હાલમાં કોઈ સેવાઓ ઉપલબ્ધ નથી."
+      },
+      "bookings": {
+        "title": "મારું બુકિંગ અને ભાડાં",
+        "subtitle": "તમારા સક્રિય સાધનોના ભાડાં, સેવા એપોઇન્ટમેન્ટ્સ અને પાકની ખરીદી પર નજર રાખો.",
+        "toolsTab": "સાધનોનું ભાડું",
+        "servicesTab": "બુક કરેલ સેવાઓ",
+        "noBookings": "કોઈ સક્રિય બુકિંગ મળ્યું નથી."
+      },
+      "admin": {
+        "title": "એડમિન કંટ્રોલ સેન્ટર",
+        "subtitle": "સિસ્ટમ સુપરવિઝન, પાક મંજૂરી, જમીન ચકાસણી અને સોદા વિશ્લેષણ.",
+        "cropsApproval": "પાક મંજૂરીઓ",
+        "landVerification": "જમીન ચકાસણી",
+        "userManagement": "વપરાશકર્તા વ્યવસ્થાપન",
+        "stats": "સિસ્ટમ આંકડા"
       },
       "checkout": {
         "title": "સુરક્ષિત ચેકઆઉટ",

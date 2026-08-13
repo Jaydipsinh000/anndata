@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { useTranslation } from 'react-i18next';
 import { Map, MapPin, Plus, Clock, XCircle, CheckCircle, FileText, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { translateText } from '../utils/translate';
 import LandUploadForm from '../components/farmer/LandUploadForm';
 
 function LandManagement() {
@@ -40,7 +40,6 @@ function LandManagement() {
     if(!userInfoStr) return;
     const token = JSON.parse(userInfoStr).token;
     
-    // Optional optimistic UI update
     const previousLands = [...lands];
     setLands(lands.filter(l => l._id !== id));
 
@@ -51,7 +50,6 @@ function LandManagement() {
       });
       if(!res.ok) throw new Error('Failed to delete');
     } catch (err) {
-      // Revert if failed
       setLands(previousLands);
       console.error('Error deleting land:', err);
     }
@@ -111,7 +109,7 @@ function LandManagement() {
                        </p>
                      </div>
                      <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-inner">
-                        {t('land.for')} {land.purpose}
+                        {t('land.for')} {translateText(land.purpose)}
                      </span>
                   </div>
                 </div>
@@ -133,7 +131,7 @@ function LandManagement() {
                            <XCircle className="shrink-0 mt-0.5" />
                            <div className="flex-1">
                               <p className="font-bold">{t('land.proposalDeclined')}</p>
-                              <p className="text-sm font-medium bg-red-100/50 p-2 mt-2 rounded border border-red-200">{land.admin_message || "Your proposal did not meet current requirements."}</p>
+                              <p className="text-sm font-medium bg-red-100/50 p-2 mt-2 rounded border border-red-200">{translateText(land.admin_message) || "Your proposal did not meet current requirements."}</p>
                            </div>
                          </div>
                          <button 
@@ -168,11 +166,11 @@ function LandManagement() {
 
                                   <div className="flex justify-between items-center bg-white/60 p-3 rounded-xl border border-indigo-100">
                                      <span className="text-xs font-bold text-indigo-500 uppercase">Payout Schedule</span>
-                                     <span className="font-black text-indigo-700 capitalize">{(land.payout_frequency || '').replace('-', ' ')}</span>
+                                     <span className="font-black text-indigo-700 capitalize">{translateText((land.payout_frequency || '').replace('-', ' '))}</span>
                                   </div>
                                   
                                   <p className="text-sm font-medium bg-white/70 p-4 rounded-xl border border-indigo-100 shadow-sm italic text-indigo-800">
-                                    "{land.admin_message}"
+                                    "{translateText(land.admin_message)}"
                                   </p>
                                </div>
                             </div>
@@ -184,9 +182,9 @@ function LandManagement() {
                       <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 text-[#006400] p-5 rounded-2xl mb-4 flex items-start gap-4 shadow-inner">
                          <CheckCircle className="shrink-0 mt-0.5" />
                          <div>
-                            <p className="font-bold uppercase tracking-widest text-[10px] bg-[#006400] text-white inline-block px-2 py-0.5 rounded-md mb-1">{land.status.replace(/_/g, ' ')}</p>
+                            <p className="font-bold uppercase tracking-widest text-[10px] bg-[#006400] text-white inline-block px-2 py-0.5 rounded-md mb-1">{translateText(land.status.replace(/_/g, ' '))}</p>
                             <p className="font-black text-lg mb-1">{t('land.dealFinalized')}</p>
-                            <p className="text-sm font-bold bg-white/70 p-3 mt-2 rounded-xl border border-green-100 shadow-sm">{land.admin_message}</p>
+                            <p className="text-sm font-bold bg-white/70 p-3 mt-2 rounded-xl border border-green-100 shadow-sm">{translateText(land.admin_message)}</p>
                          </div>
                       </div>
                    )}
@@ -215,3 +213,4 @@ function LandManagement() {
 }
 
 export default LandManagement;
+

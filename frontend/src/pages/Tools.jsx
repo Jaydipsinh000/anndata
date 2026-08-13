@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { Hammer, Truck, PenTool, Search, Tag, MapPin, CheckCircle, Plus } from 'lucide-react';
+import { Hammer, PenTool, Search, MapPin, CheckCircle, Plus } from 'lucide-react';
 import ToolUploadForm from '../components/farmer/ToolUploadForm';
 import { useTranslation } from 'react-i18next';
+import { translateText } from '../utils/translate';
 import ToolCalendarModal from '../components/ToolCalendarModal';
 
 function Tools() {
@@ -82,9 +83,9 @@ function Tools() {
                 
                 <div className="p-8 border-b border-gray-100">
                   <div className="flex justify-between items-start mb-2">
-                     <h3 className="text-2xl font-black text-gray-900 leading-tight">{tool.tool_name}</h3>
+                     <h3 className="text-2xl font-black text-gray-900 leading-tight">{translateText(tool.tool_name)}</h3>
                      <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${tool.status === 'active' || tool.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
-                        {tool.status}
+                        {translateText(tool.status)}
                      </span>
                   </div>
                   <p className="text-gray-400 font-bold text-sm tracking-widest uppercase">ID: {tool._id.substring(0, 8)}</p>
@@ -108,7 +109,7 @@ function Tools() {
                           <span className="text-xl font-black text-gray-900">₹{tool.price ? tool.price.toLocaleString() : 'N/A'}</span>
                       </div>
                       <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center group-hover:border-indigo-100 transition-colors">
-                          <span className="text-sm font-bold text-gray-500">{t('tools.rent')} <span className="text-xs font-medium text-gray-400 block">{tool.rent_duration || 'Daily'}</span></span>
+                          <span className="text-sm font-bold text-gray-500">{t('tools.rent')} <span className="text-xs font-medium text-gray-400 block">{translateText(tool.rent_duration || 'Daily')}</span></span>
                           <span className="text-xl font-black text-indigo-600">₹{tool.rent_price ? tool.rent_price.toLocaleString() : 'N/A'}</span>
                       </div>
                    </div>
@@ -136,3 +137,4 @@ function Tools() {
 }
 
 export default Tools;
+

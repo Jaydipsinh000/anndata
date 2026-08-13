@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import toast from 'react-hot-toast';
-import { Loader2, Mail, CheckCircle, XCircle, Clock, Send, ShieldCheck, User, IndianRupee, Package, MessageSquare, Sprout, Wheat, FileText, Download, Phone } from 'lucide-react';
+import { Loader2, Mail, CheckCircle, XCircle, Package, MessageSquare, Sprout, ShieldCheck, User, FileText, Download, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { translateText } from '../utils/translate';
 import ChatModal from '../components/ChatModal';
 
 function Bookings() {
+  const { t } = useTranslation();
   const [bookings, setBookings] = useState([]);
   const [growingCrops, setGrowingCrops] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +45,7 @@ function Bookings() {
   };
 
   const handleUpdateStatus = async (id, status) => {
-    toast((t) => (
+    toast((toastItem) => (
       <div className="flex flex-col gap-3 p-2">
         <div className="flex items-center gap-3">
           <div className="text-[#006400] bg-green-100 p-2 rounded-full shadow-sm">
@@ -55,14 +58,14 @@ function Bookings() {
         </div>
         <div className="flex gap-2 justify-end mt-2 pt-2 border-t border-gray-100">
           <button 
-            onClick={() => toast.dismiss(t.id)} 
+            onClick={() => toast.dismiss(toastItem.id)} 
             className="px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 rounded-xl text-sm font-bold transition-colors"
           >
-            Cancel
+            {t('crops.cancel', 'Cancel')}
           </button>
           <button 
             onClick={async () => {
-              toast.dismiss(t.id);
+              toast.dismiss(toastItem.id);
               const loadingToast = toast.loading('Updating...');
               try {
                 const res = await fetch(`/api/bookings/${id}/status`, {
@@ -164,8 +167,8 @@ function Bookings() {
 
       <div className="bg-gradient-to-r from-[#004d00] to-[#2ecc71] py-16 px-4 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/images/background.png')] bg-cover mix-blend-overlay opacity-20"></div>
-        <h2 className="text-white text-4xl md:text-5xl font-extrabold mb-2 relative z-10 drop-shadow-md">Advance Bookings</h2>
-        <p className="text-green-100 text-lg relative z-10">Book future crops and track your negotiation pipeline.</p>
+        <h2 className="text-white text-4xl md:text-5xl font-extrabold mb-2 relative z-10 drop-shadow-md">{t('bookings.title', 'My Bookings & Rentals')}</h2>
+        <p className="text-green-100 text-lg relative z-10">{t('bookings.subtitle', 'Track your active tool rentals, service appointments, and crop purchases.')}</p>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 -mt-8 relative z-10">
@@ -173,25 +176,25 @@ function Bookings() {
         {/* Growing Crops Available for Booking (Buyer Only) */}
         {isBuyer && growingCrops.length > 0 && (
           <div className="mb-10">
-            <h3 className="text-xl font-black text-gray-800 mb-4 flex items-center gap-2"><Sprout className="text-green-600" size={22}/> Future Crops Available for Booking</h3>
+            <h3 className="text-xl font-black text-gray-800 mb-4 flex items-center gap-2"><Sprout className="text-green-600" size={22}/> {t('crops.growingSection', 'Growing Crops')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {growingCrops.map(crop => (
                 <div key={crop._id} className="bg-white rounded-[2rem] p-6 shadow-sm border border-green-100 hover:shadow-md transition-all">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-green-700 bg-green-100 px-3 py-1 rounded-xl">Growing</span>
-                      <h4 className="text-xl font-black text-gray-800 mt-2 capitalize">{crop.crop_name}</h4>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-green-700 bg-green-100 px-3 py-1 rounded-xl">{t('crops.growingSection', 'Growing')}</span>
+                      <h4 className="text-xl font-black text-gray-800 mt-2 capitalize">{translateText(crop.crop_name)}</h4>
                       <p className="text-xs text-gray-500 font-medium mt-1">{crop.user_id?.name} • {crop.land_id?.location || 'Unknown'}</p>
                     </div>
                     <Sprout className="text-green-500" size={24}/>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Expected Yield</p><p className="font-bold text-gray-800">{crop.expected_yield_qty} {crop.expected_yield_unit}</p></div>
-                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Harvest Date</p><p className="font-bold text-gray-800">{crop.expected_harvest_date ? new Date(crop.expected_harvest_date).toLocaleDateString() : 'TBD'}</p></div>
-                    <div className="bg-green-50 border border-green-100 p-3 rounded-xl col-span-2"><p className="text-[10px] font-black text-green-600 uppercase mb-1">Expected Price/Unit</p><p className="font-black text-green-700 text-xl">₹{crop.price}</p></div>
+                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">{t('crops.yield', 'Expected Yield')}</p><p className="font-bold text-gray-800">{crop.expected_yield_qty} {crop.expected_yield_unit}</p></div>
+                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">{t('crops.harvestDate', 'Harvest Date')}</p><p className="font-bold text-gray-800">{crop.expected_harvest_date ? new Date(crop.expected_harvest_date).toLocaleDateString() : 'TBD'}</p></div>
+                    <div className="bg-green-50 border border-green-100 p-3 rounded-xl col-span-2"><p className="text-[10px] font-black text-green-600 uppercase mb-1">{t('crops.priceUnit', 'Price')}</p><p className="font-black text-green-700 text-xl">₹{crop.price}</p></div>
                   </div>
                   <button onClick={() => { setBookingModal(crop); setBidForm({...bidForm, offered_price: crop.price}); }} className="w-full bg-[#006400] text-white font-bold py-3 rounded-xl hover:bg-[#004d00] transition-colors shadow-md flex items-center justify-center gap-2">
-                    <Package size={16}/> Place Advance Booking
+                    <Package size={16}/> {t('marketplace.buy', 'Book Now')}
                   </button>
                 </div>
               ))}
@@ -200,11 +203,11 @@ function Bookings() {
         )}
 
         {/* My Booking Contracts */}
-        <h3 className="text-xl font-black text-gray-800 mb-4 flex items-center gap-2"><Mail className="text-indigo-600" size={22}/> My Booking Contracts</h3>
+        <h3 className="text-xl font-black text-gray-800 mb-4 flex items-center gap-2"><Mail className="text-indigo-600" size={22}/> {t('bookings.title', 'My Bookings')}</h3>
         {bookings.length === 0 ? (
           <div className="bg-white rounded-[2rem] p-16 text-center shadow-sm border border-gray-100">
             <Mail className="mx-auto text-gray-300 mb-4" size={48}/>
-            <h4 className="text-xl font-black text-gray-400">No bookings yet</h4>
+            <h4 className="text-xl font-black text-gray-400">{t('bookings.noBookings', 'No active bookings found.')}</h4>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -212,17 +215,17 @@ function Bookings() {
               <div key={b._id} className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all">
                 <div className="flex justify-between items-start mb-4 pb-4 border-b border-gray-100">
                   <div>
-                    <h4 className="text-xl font-black text-gray-800">{b.crop_id?.crop_name || 'Unknown Crop'}</h4>
+                    <h4 className="text-xl font-black text-gray-800">{translateText(b.crop_id?.crop_name || 'Unknown Crop')}</h4>
                     <p className="text-xs text-gray-500 font-medium mt-1">{b.order_type === 'advance_booking' ? '🌱 Advance Booking' : '🌾 Purchase'}</p>
                   </div>
                   <span className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest ${statusColor(b.status)}`}>
-                    {(b.status || '').replace(/_/g, ' ')}
+                    {translateText(b.status)}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                   <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Qty</p><p className="font-bold text-gray-800">{b.requested_qty || '-'} {b.crop_id?.expected_yield_unit || 'kg'}</p></div>
-                  <div className="bg-green-50 border border-green-100 p-3 rounded-xl"><p className="text-[10px] font-black text-green-600 uppercase mb-1">Offered Price</p><p className="font-black text-green-700">₹{b.offered_price || b.estimated_cost}</p></div>
+                  <div className="bg-green-50 border border-green-100 p-3 rounded-xl"><p className="text-[10px] font-black text-green-600 uppercase mb-1">{t('crops.priceUnit', 'Price')}</p><p className="font-black text-green-700">₹{b.offered_price || b.estimated_cost}</p></div>
                 </div>
 
                 {/* Buyer Information (Farmer View Only) */}
@@ -252,7 +255,7 @@ function Bookings() {
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {b.negotiation_log.map((entry, i) => (
                         <div key={i} className={`text-xs p-2 rounded-lg ${entry.by === 'admin' ? 'bg-white border border-indigo-200 text-indigo-700' : 'bg-indigo-100 text-indigo-600'}`}>
-                          <span className="font-black uppercase">{entry.by}</span>: ₹{entry.price} × {entry.qty} — {entry.message}
+                          <span className="font-black uppercase">{entry.by}</span>: ₹{entry.price} × {entry.qty} — {translateText(entry.message)}
                         </div>
                       ))}
                     </div>
@@ -262,7 +265,7 @@ function Bookings() {
                 {b.admin_message && (
                   <div className="bg-blue-50 p-3 rounded-xl border border-blue-100 mb-4">
                     <p className="text-[10px] font-black text-blue-800 uppercase mb-1">Admin Notes</p>
-                    <p className="text-sm text-blue-700 font-medium">{b.admin_message}</p>
+                    <p className="text-sm text-blue-700 font-medium">{translateText(b.admin_message)}</p>
                   </div>
                 )}
 
@@ -334,7 +337,7 @@ function Bookings() {
             </div>
 
             <div className="bg-green-50 border border-green-100 rounded-2xl p-4 mb-6">
-              <p className="text-xs font-black text-green-800 uppercase tracking-widest mb-1">{bookingModal.crop_name}</p>
+              <p className="text-xs font-black text-green-800 uppercase tracking-widest mb-1">{translateText(bookingModal.crop_name)}</p>
               <p className="text-sm text-green-700 font-medium">Available: {bookingModal.expected_yield_qty} {bookingModal.expected_yield_unit} • Listed at ₹{bookingModal.price}/{bookingModal.expected_yield_unit}</p>
             </div>
 

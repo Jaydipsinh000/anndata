@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Sprout, Wheat, Plus, XCircle, Loader2, Tractor, MapPin, IndianRupee, Calendar, BarChart3, Package, ShieldCheck, ChevronDown, AlertCircle } from 'lucide-react';
+import { Sprout, Wheat, Plus, XCircle, Tractor, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Navbar from '../components/Navbar';
 
 function Crops() {
+  const { t } = useTranslation();
   const [crops, setCrops] = useState([]);
   const [myLands, setMyLands] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -100,22 +102,26 @@ function Crops() {
       <div className="bg-gradient-to-r from-[#004d00] to-[#2ecc71] py-16 px-4 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/images/background.png')] bg-cover mix-blend-overlay opacity-20"></div>
         <h2 className="text-white text-4xl md:text-5xl font-extrabold mb-2 relative z-10 drop-shadow-md">
-          My Crop Portfolio
+          {t('crops.title', 'My Crop Portfolio')}
         </h2>
-        <p className="text-green-100 text-lg relative z-10">Control panel for your growing and ready-to-sell crops.</p>
+        <p className="text-green-100 text-lg relative z-10">
+          {t('crops.subtitle', 'Control panel for your growing and ready-to-sell crops.')}
+        </p>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 -mt-8 relative z-10">
 
         {/* Add Crop Button */}
         <button onClick={() => setShowAddForm(true)} className="mb-6 flex items-center gap-2 bg-white border-2 border-dashed border-green-300 text-[#006400] font-bold px-6 py-4 rounded-2xl hover:bg-green-50 transition-all w-full justify-center text-lg shadow-sm">
-          <Plus size={24} /> List New Crop
+          <Plus size={24} /> {t('crops.listNew', 'List New Crop')}
         </button>
 
         {/* Growing Crops Section */}
         {growingCrops.length > 0 && (
           <div className="mb-10">
-            <h3 className="text-xl font-black text-gray-800 mb-4 flex items-center gap-2"><Sprout className="text-green-600" size={22}/> Growing Crops (In Field)</h3>
+            <h3 className="text-xl font-black text-gray-800 mb-4 flex items-center gap-2">
+              <Sprout className="text-green-600" size={22}/> {t('crops.growingSection', 'Growing Crops (In Field)')}
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {growingCrops.map(crop => (
                 <div key={crop._id} className="bg-white rounded-[2rem] p-6 shadow-sm border border-green-100 hover:shadow-md transition-all">
@@ -127,10 +133,22 @@ function Crops() {
                     <div className="bg-green-50 p-2 rounded-xl"><Sprout className="text-green-600" size={20}/></div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Area</p><p className="font-bold text-gray-800">{crop.area_value} {crop.area_unit}</p></div>
-                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Expected Yield</p><p className="font-bold text-gray-800">{crop.expected_yield_qty} {crop.expected_yield_unit}</p></div>
-                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Harvest Date</p><p className="font-bold text-gray-800">{crop.expected_harvest_date ? new Date(crop.expected_harvest_date).toLocaleDateString() : 'TBD'}</p></div>
-                    <div className="bg-green-50 border border-green-100 p-3 rounded-xl"><p className="text-[10px] font-black text-green-600 uppercase mb-1">Price/Unit</p><p className="font-black text-green-700 text-lg">₹{crop.price}</p></div>
+                    <div className="bg-gray-50 p-3 rounded-xl">
+                      <p className="text-[10px] font-black text-gray-400 uppercase mb-1">{t('crops.area', 'Area')}</p>
+                      <p className="font-bold text-gray-800">{crop.area_value} {crop.area_unit}</p>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded-xl">
+                      <p className="text-[10px] font-black text-gray-400 uppercase mb-1">{t('crops.yield', 'Expected Yield')}</p>
+                      <p className="font-bold text-gray-800">{crop.expected_yield_qty} {crop.expected_yield_unit}</p>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded-xl">
+                      <p className="text-[10px] font-black text-gray-400 uppercase mb-1">{t('crops.harvestDate', 'Harvest Date')}</p>
+                      <p className="font-bold text-gray-800">{crop.expected_harvest_date ? new Date(crop.expected_harvest_date).toLocaleDateString() : 'TBD'}</p>
+                    </div>
+                    <div className="bg-green-50 border border-green-100 p-3 rounded-xl">
+                      <p className="text-[10px] font-black text-green-600 uppercase mb-1">{t('crops.priceUnit', 'Price/Unit')}</p>
+                      <p className="font-black text-green-700 text-lg">₹{crop.price}</p>
+                    </div>
                   </div>
                   {crop.advance_booking_enabled && <p className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl w-max mb-3">ADVANCE BOOKING OPEN</p>}
 
@@ -138,20 +156,20 @@ function Crops() {
                   {crop.status === 'approved' && (
                     harvestingId === crop._id ? (
                       <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 space-y-3 animate-[fadeIn_0.3s_ease-out]">
-                        <p className="text-xs font-black text-orange-800 uppercase tracking-widest">Mark as Harvested</p>
+                        <p className="text-xs font-black text-orange-800 uppercase tracking-widest">{t('crops.markHarvested', 'Mark as Harvested')}</p>
                         <input type="number" placeholder="Final Qty Harvested" value={harvestData.final_qty} onChange={e => setHarvestData({...harvestData, final_qty: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none" />
                         <select value={harvestData.quality_grade} onChange={e => setHarvestData({...harvestData, quality_grade: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none">
                           <option value="A">Grade A (Premium)</option><option value="B">Grade B (Standard)</option><option value="C">Grade C (Low)</option>
                         </select>
                         <input type="number" placeholder="Selling Price ₹/unit" value={harvestData.selling_price} onChange={e => setHarvestData({...harvestData, selling_price: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none" />
                         <div className="flex gap-2">
-                          <button onClick={() => handleHarvest(crop._id)} className="flex-1 bg-orange-600 text-white font-bold py-3 rounded-xl text-sm hover:bg-orange-700 transition-colors">Confirm Harvest</button>
-                          <button onClick={() => setHarvestingId(null)} className="px-4 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl text-sm">Cancel</button>
+                          <button onClick={() => handleHarvest(crop._id)} className="flex-1 bg-orange-600 text-white font-bold py-3 rounded-xl text-sm hover:bg-orange-700 transition-colors">{t('crops.confirmHarvest', 'Confirm Harvest')}</button>
+                          <button onClick={() => setHarvestingId(null)} className="px-4 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl text-sm">{t('crops.cancel', 'Cancel')}</button>
                         </div>
                       </div>
                     ) : (
                       <button onClick={() => setHarvestingId(crop._id)} className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl text-sm hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 shadow-md shadow-orange-500/20">
-                        <Tractor size={16}/> Mark as Harvested
+                        <Tractor size={16}/> {t('crops.markHarvested', 'Mark as Harvested')}
                       </button>
                     )
                   )}
@@ -163,11 +181,13 @@ function Crops() {
 
         {/* Ready Crops Section */}
         <div>
-          <h3 className="text-xl font-black text-gray-800 mb-4 flex items-center gap-2"><Wheat className="text-orange-600" size={22}/> Ready to Sell</h3>
+          <h3 className="text-xl font-black text-gray-800 mb-4 flex items-center gap-2">
+            <Wheat className="text-orange-600" size={22}/> {t('crops.readySection', 'Ready to Sell')}
+          </h3>
           {readyCrops.length === 0 ? (
             <div className="bg-white rounded-[2rem] p-16 text-center shadow-sm border border-gray-100">
               <Wheat className="mx-auto text-gray-300 mb-4" size={48}/>
-              <h4 className="text-xl font-black text-gray-400">No ready crops yet</h4>
+              <h4 className="text-xl font-black text-gray-400">{t('crops.noReady', 'No ready crops yet')}</h4>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -184,10 +204,10 @@ function Crops() {
                     <div className="bg-orange-50 p-2 rounded-xl group-hover:bg-orange-100 transition-colors"><Wheat className="text-orange-600" size={20}/></div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Season</p><p className="font-bold text-gray-800">{crop.season}</p></div>
-                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Available</p><p className="font-bold text-gray-800">{crop.available_qty || crop.stock || 0} {crop.expected_yield_unit || 'kg'}</p></div>
-                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">Area</p><p className="font-bold text-gray-800">{crop.area_value} {crop.area_unit}</p></div>
-                    <div className="bg-green-50 border border-green-100 p-3 rounded-xl"><p className="text-[10px] font-black text-green-600 uppercase mb-1">Price/Unit</p><p className="font-black text-green-700 text-lg">₹{crop.price}</p></div>
+                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">{t('crops.season', 'Season')}</p><p className="font-bold text-gray-800">{crop.season}</p></div>
+                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">{t('crops.available', 'Available')}</p><p className="font-bold text-gray-800">{crop.available_qty || crop.stock || 0} {crop.expected_yield_unit || 'kg'}</p></div>
+                    <div className="bg-gray-50 p-3 rounded-xl"><p className="text-[10px] font-black text-gray-400 uppercase mb-1">{t('crops.area', 'Area')}</p><p className="font-bold text-gray-800">{crop.area_value} {crop.area_unit}</p></div>
+                    <div className="bg-green-50 border border-green-100 p-3 rounded-xl"><p className="text-[10px] font-black text-green-600 uppercase mb-1">{t('crops.priceUnit', 'Price/Unit')}</p><p className="font-black text-green-700 text-lg">₹{crop.price}</p></div>
                   </div>
                   {crop.reserved_qty > 0 && <p className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl w-max mb-3">📦 {crop.reserved_qty} {crop.expected_yield_unit || 'kg'} Reserved</p>}
                 </div>
@@ -202,7 +222,7 @@ function Crops() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
           <div className="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="px-8 py-6 bg-gray-50 border-b border-gray-100 flex justify-between items-center shrink-0">
-              <h3 className="text-2xl font-black text-gray-800">List New Crop</h3>
+              <h3 className="text-2xl font-black text-gray-800">{t('crops.listNew', 'List New Crop')}</h3>
               <button onClick={() => setShowAddForm(false)} className="text-gray-400 hover:text-gray-600"><XCircle size={24}/></button>
             </div>
 
@@ -218,10 +238,10 @@ function Crops() {
                 {/* Type Toggle */}
                 <div className="flex bg-gray-100 rounded-xl overflow-hidden shrink-0">
                   <button type="button" onClick={() => setCropType('growing')} className={`flex-1 py-3 text-sm font-bold transition-colors flex items-center justify-center gap-2 ${cropType === 'growing' ? 'bg-green-600 text-white' : 'text-gray-500 hover:bg-gray-200'}`}>
-                    <Sprout size={16}/> Growing
+                    <Sprout size={16}/> {t('crops.growingSection', 'Growing')}
                   </button>
                   <button type="button" onClick={() => setCropType('ready')} className={`flex-1 py-3 text-sm font-bold transition-colors flex items-center justify-center gap-2 ${cropType === 'ready' ? 'bg-orange-600 text-white' : 'text-gray-500 hover:bg-gray-200'}`}>
-                    <Wheat size={16}/> Ready to Sell
+                    <Wheat size={16}/> {t('crops.readySection', 'Ready to Sell')}
                   </button>
                 </div>
 
@@ -252,10 +272,10 @@ function Crops() {
                 {/* Growing-specific */}
                 {cropType === 'growing' && (
                   <div className="bg-green-50 border border-green-100 rounded-2xl p-5 space-y-4">
-                    <p className="text-[10px] font-black text-green-800 uppercase tracking-widest flex items-center gap-1"><Sprout size={12}/> Growing Crop Details</p>
+                    <p className="text-[10px] font-black text-green-800 uppercase tracking-widest flex items-center gap-1"><Sprout size={12}/> {t('crops.growingDetails', 'Growing Crop Details')}</p>
                     <div className="grid grid-cols-2 gap-4">
-                      <div><label className="text-[10px] font-bold text-green-600 uppercase block mb-1">Sowing Date</label><input type="date" value={form.sowing_date} onChange={e => setForm({...form, sowing_date: e.target.value})} className="w-full p-3 rounded-xl border border-green-200 text-sm font-medium focus:outline-none" /></div>
-                      <div><label className="text-[10px] font-bold text-green-600 uppercase block mb-1">Expected Harvest</label><input type="date" value={form.expected_harvest_date} onChange={e => setForm({...form, expected_harvest_date: e.target.value})} className="w-full p-3 rounded-xl border border-green-200 text-sm font-medium focus:outline-none" /></div>
+                      <div><label className="text-[10px] font-bold text-green-600 uppercase block mb-1">{t('crops.sowingDate', 'Sowing Date')}</label><input type="date" value={form.sowing_date} onChange={e => setForm({...form, sowing_date: e.target.value})} className="w-full p-3 rounded-xl border border-green-200 text-sm font-medium focus:outline-none" /></div>
+                      <div><label className="text-[10px] font-bold text-green-600 uppercase block mb-1">{t('crops.expectedHarvest', 'Expected Harvest')}</label><input type="date" value={form.expected_harvest_date} onChange={e => setForm({...form, expected_harvest_date: e.target.value})} className="w-full p-3 rounded-xl border border-green-200 text-sm font-medium focus:outline-none" /></div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <input type="number" placeholder="Expected Yield Qty" value={form.expected_yield_qty} onChange={e => setForm({...form, expected_yield_qty: e.target.value})} className="w-full p-3 rounded-xl border border-green-200 text-sm font-medium focus:outline-none" />
@@ -265,7 +285,7 @@ function Crops() {
                     </div>
                     <label className="flex items-center gap-3 cursor-pointer bg-white p-3 rounded-xl border border-green-200">
                       <input type="checkbox" checked={form.advance_booking_enabled} onChange={e => setForm({...form, advance_booking_enabled: e.target.checked})} className="w-5 h-5 accent-green-600" />
-                      <span className="text-sm font-bold text-green-800">Enable Advance Booking for Buyers</span>
+                      <span className="text-sm font-bold text-green-800">{t('crops.enableAdvance', 'Enable Advance Booking for Buyers')}</span>
                     </label>
                   </div>
                 )}
@@ -273,7 +293,7 @@ function Crops() {
                 {/* Ready-specific */}
                 {cropType === 'ready' && (
                   <div className="bg-orange-50 border border-orange-100 rounded-2xl p-5 space-y-4">
-                    <p className="text-[10px] font-black text-orange-800 uppercase tracking-widest flex items-center gap-1"><Wheat size={12}/> Ready Crop Details</p>
+                    <p className="text-[10px] font-black text-orange-800 uppercase tracking-widest flex items-center gap-1"><Wheat size={12}/> {t('crops.readyDetails', 'Ready Crop Details')}</p>
                     <input required type="number" placeholder="Available Quantity" value={form.available_qty} onChange={e => setForm({...form, available_qty: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none" />
                     <select value={form.quality_grade} onChange={e => setForm({...form, quality_grade: e.target.value})} className="w-full p-3 rounded-xl border border-orange-200 text-sm font-medium focus:outline-none">
                       <option value="A">Grade A (Premium)</option><option value="B">Grade B (Standard)</option><option value="C">Grade C (Basic)</option><option value="Ungraded">Ungraded</option>
@@ -282,7 +302,7 @@ function Crops() {
                 )}
 
                 <button type="submit" className="w-full bg-[#006400] text-white font-bold py-4 rounded-xl hover:bg-[#004d00] transition-colors shadow-lg text-sm">
-                  Submit Crop for Approval
+                  {t('crops.submitCrop', 'Submit Crop for Approval')}
                 </button>
               </form>
             </div>
@@ -294,3 +314,4 @@ function Crops() {
 }
 
 export default Crops;
+

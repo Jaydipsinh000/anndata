@@ -79,15 +79,15 @@ function Navbar() {
         </Link>
 
         {/* Desktop Menu */}
-        <nav className="hidden lg:flex items-center gap-2 xl:gap-6">
-          <ul className="flex space-x-3 xl:space-x-6 list-none m-0 p-0 font-medium items-center">
+        <nav className="hidden lg:flex items-center gap-2 xl:gap-4 shrink-0">
+          <ul className="flex items-center gap-1.5 xl:gap-3 list-none m-0 p-0 font-medium">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
               return (
                 <li key={link.name}>
                   <Link
                     to={link.path}
-                    className={`relative text-white/90 decoration-none hover:text-white transition-colors duration-300 py-2 text-[11px] xl:text-sm uppercase tracking-wider font-bold group whitespace-nowrap`}
+                    className={`relative text-white/90 decoration-none hover:text-white transition-colors duration-300 py-1.5 px-1 xl:px-2 text-[10px] xl:text-xs font-extrabold uppercase tracking-wider group whitespace-nowrap`}
                   >
                     {link.name}
                     <span className={`absolute bottom-0 left-0 h-[2px] bg-green-400 transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
@@ -98,30 +98,31 @@ function Navbar() {
           </ul>
 
           {/* Language Switch */}
-          <div className="flex gap-0.5 xl:gap-1 items-center ml-2 border-l border-white/20 pl-3 xl:ml-4 xl:pl-6">
-             <button onClick={() => changeLanguage('en')} className={`text-[10px] xl:text-xs font-bold px-1.5 xl:px-2 py-1 rounded transition-colors ${i18n.language === 'en' ? 'bg-white text-green-900' : 'text-white hover:bg-white/20'}`}>EN</button>
-             <button onClick={() => changeLanguage('hi')} className={`text-[10px] xl:text-xs font-bold px-1.5 xl:px-2 py-1 rounded transition-colors ${i18n.language === 'hi' ? 'bg-white text-green-900' : 'text-white hover:bg-white/20'}`}>HI</button>
-             <button onClick={() => changeLanguage('gu')} className={`text-[10px] xl:text-xs font-bold px-1.5 xl:px-2 py-1 rounded transition-colors ${i18n.language === 'gu' ? 'bg-white text-green-900' : 'text-white hover:bg-white/20'}`}>GU</button>
+          <div className="flex gap-0.5 items-center ml-1 border-l border-white/20 pl-2 xl:ml-2 xl:pl-3 shrink-0">
+             <button onClick={() => changeLanguage('en')} className={`text-[10px] font-bold px-1.5 py-1 rounded transition-colors ${i18n.language === 'en' ? 'bg-white text-green-900' : 'text-white hover:bg-white/20'}`}>EN</button>
+             <button onClick={() => changeLanguage('hi')} className={`text-[10px] font-bold px-1.5 py-1 rounded transition-colors ${i18n.language === 'hi' ? 'bg-white text-green-900' : 'text-white hover:bg-white/20'}`}>HI</button>
+             <button onClick={() => changeLanguage('gu')} className={`text-[10px] font-bold px-1.5 py-1 rounded transition-colors ${i18n.language === 'gu' ? 'bg-white text-green-900' : 'text-white hover:bg-white/20'}`}>GU</button>
           </div>
 
           {/* Auth Buttons */}
-          <div className="flex gap-2 xl:gap-3 items-center ml-2 border-l border-white/20 pl-3 xl:ml-4 xl:pl-6">
+          <div className="flex gap-2 items-center ml-1 border-l border-white/20 pl-2 xl:ml-2 xl:pl-3 shrink-0">
             {isLoggedIn ? (
-              <button onClick={handleLogout} className="bg-red-500/20 hover:bg-red-500/40 border border-red-500/50 text-white font-bold py-1.5 xl:py-2 px-3 xl:px-5 rounded-xl transition-all duration-300 text-xs xl:text-sm cursor-pointer shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] hover:-translate-y-0.5 whitespace-nowrap">
+              <button onClick={handleLogout} className="bg-red-500/20 hover:bg-red-500/40 border border-red-500/50 text-white font-black py-1.5 px-3 rounded-xl transition-all duration-300 text-xs cursor-pointer shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] whitespace-nowrap shrink-0">
                 {t('auth.logout', 'Logout')}
               </button>
             ) : (
               <>
-                <Link to="/login" className="text-green-50 font-bold py-1.5 xl:py-2 px-3 xl:px-4 rounded-xl hover:bg-white/10 transition-colors text-xs xl:text-sm border border-transparent hover:border-white/20 whitespace-nowrap">
+                <Link to="/login" className="text-green-50 font-bold py-1.5 px-3 rounded-xl hover:bg-white/10 transition-colors text-xs border border-transparent hover:border-white/20 whitespace-nowrap">
                   {t('auth.login', 'Login')}
                 </Link>
-                <Link to="/register" className="bg-gradient-to-r from-[#FF9800] to-[#F57C00] hover:from-[#F57C00] hover:to-[#EF6C00] text-white font-bold py-1.5 xl:py-2 px-4 xl:px-6 rounded-xl transition-all duration-300 text-xs xl:text-sm shadow-[0_0_15px_rgba(255,152,0,0.4)] hover:shadow-[0_0_25px_rgba(255,152,0,0.6)] hover:-translate-y-0.5 whitespace-nowrap">
+                <Link to="/register" className="bg-gradient-to-r from-[#FF9800] to-[#F57C00] hover:from-[#F57C00] hover:to-[#EF6C00] text-white font-bold py-1.5 px-4 rounded-xl transition-all duration-300 text-xs shadow-[0_0_15px_rgba(255,152,0,0.4)] whitespace-nowrap">
                   {t('auth.register', 'Register')}
                 </Link>
               </>
             )}
           </div>
         </nav>
+
 
         {/* Mobile Hamburger Icon */}
         <button 

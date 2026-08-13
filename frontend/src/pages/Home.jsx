@@ -18,7 +18,6 @@ function Home() {
         {/* Background Elements */}
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-br from-[#004d00] via-[#006400] to-[#2ecc71] opacity-95"></div>
-          {/* Subtle noise/texture overlay if you had one, using css bg blend */}
           <div className="absolute inset-0 bg-[url('/images/background.png')] bg-cover bg-center mix-blend-overlay opacity-30"></div>
           
           {/* Animated decorative blobs */}
@@ -29,15 +28,15 @@ function Home() {
         <div className="z-10 text-center max-w-4xl mx-auto px-4 mt-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-effect-dark border border-white/20 text-green-100 text-sm font-bold mb-8 animate-[fadeIn_0.8s_ease-out]">
             <Sprout size={16} className="text-green-400" />
-            Empowering Modern Agriculture
+            {t('home.badge', 'Empowering Modern Agriculture')}
           </div>
           
           <h1 className="text-5xl md:text-7xl font-extrabold mb-6 text-white leading-tight drop-shadow-xl animate-[fadeIn_1s_ease-out]">
-            {t('home.welcome')}
+            {t('home.welcome', 'Welcome to Anndata')}
           </h1>
           
           <p className="text-xl md:text-2xl text-green-50 max-w-2xl mx-auto mb-10 font-medium leading-relaxed drop-shadow-sm animate-[fadeIn_1.2s_ease-out]">
-            {t('home.subtitle') || "Connecting farmers with resources, markets, and communities for a sustainable future."}
+            {t('home.subtitle', 'Empowering Farmers, Connecting Markets.')}
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 animate-[fadeIn_1.4s_ease-out]">
@@ -46,21 +45,21 @@ function Home() {
                 onClick={() => navigate('/register')}
                 className="px-8 py-4 bg-white text-[#006400] rounded-2xl font-bold text-lg hover:bg-green-50 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(0,0,0,0.2)] transition-all duration-300 w-full sm:w-auto"
               >
-                {t('home.getStarted') || "Get Started"}
+                {t('home.getStarted', 'Get Started')}
               </button>
             ) : (
               <button 
                 onClick={() => navigate('/profile')}
                 className="px-8 py-4 bg-white text-[#006400] rounded-2xl font-bold text-lg hover:bg-green-50 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(0,0,0,0.2)] transition-all duration-300 w-full sm:w-auto"
               >
-                {t('nav.profile') || "Go to Profile"}
+                {t('nav.profile', 'Profile')}
               </button>
             )}
             <button 
               onClick={() => navigate('/marketplace')}
               className="px-8 py-4 bg-transparent border-2 border-white/40 text-white rounded-2xl font-bold text-lg hover:bg-white/10 hover:-translate-y-1 hover:border-white transition-all duration-300 w-full sm:w-auto backdrop-blur-sm"
             >
-              Explore Market
+              {t('home.exploreMarket', 'Explore Market')}
             </button>
           </div>
 
@@ -81,9 +80,9 @@ function Home() {
       <section className="max-w-7xl mx-auto px-5 pb-24 relative z-20 -mt-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
-            { icon: <Tractor size={32} />, title: "Smart Land Management", desc: "Digital land records, soil health tracking, and resource allocation." },
-            { icon: <Globe size={32} />, title: "Direct Market Access", desc: "Bypass middlemen and sell your produce directly to verified buyers." },
-            { icon: <Leaf size={32} />, title: "Sustainable Practices", desc: "Expert guidance and community support for modern organic farming." }
+            { icon: <Tractor size={32} />, title: t('home.featLandTitle', 'Smart Land Management'), desc: t('home.featLandDesc', 'Digital land records, soil health tracking, and resource allocation.') },
+            { icon: <Globe size={32} />, title: t('home.featMarketTitle', 'Direct Market Access'), desc: t('home.featMarketDesc', 'Bypass middlemen and sell your produce directly to verified buyers.') },
+            { icon: <Leaf size={32} />, title: t('home.featOrganicTitle', 'Sustainable Practices'), desc: t('home.featOrganicDesc', 'Expert guidance and community support for modern organic farming.') }
           ].map((feature, idx) => (
             <div key={idx} className="bg-white rounded-[2rem] p-8 shadow-[0_10px_40px_rgba(0,0,0,0.05)] border border-gray-100 hover:shadow-[0_20px_40px_rgba(0,100,0,0.1)] hover:-translate-y-2 transition-all duration-300 group">
               <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center text-[#006400] mb-6 group-hover:bg-[#006400] group-hover:text-white transition-colors duration-300">
@@ -107,7 +106,7 @@ function Home() {
       <section className="max-w-5xl mx-auto p-5 pb-24 text-center">
         <h2 className="text-4xl font-extrabold mb-8 text-[#1b431b] flex items-center justify-center gap-3">
            <Leaf className="text-[#2ecc71]" />
-           {t('home.aboutTitle') || "About Anndata"}
+           {t('home.aboutTitle', 'About Anndata')}
            <Leaf className="text-[#2ecc71] transform -scale-x-100" />
         </h2>
         <div className="glass-effect p-10 md:p-14 rounded-[2.5rem] text-gray-700 leading-relaxed text-lg lg:text-xl font-medium shadow-xl">
@@ -130,7 +129,7 @@ function Home() {
             <span className="text-2xl font-black">અન્નદાતા</span>
           </div>
           <p className="m-0 text-green-100/60 font-medium text-sm">
-            &copy; {new Date().getFullYear()} Anndata Portal. Cultivating a better tomorrow.
+            &copy; {new Date().getFullYear()} {t('home.copyright', 'Anndata Portal. Cultivating a better tomorrow.')}
           </p>
         </div>
       </footer>
@@ -139,3 +138,4 @@ function Home() {
 }
 
 export default Home;
+
