@@ -23,24 +23,46 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  address: {
-    type: String,
-    required: false
-  },
+
+  // Structured Address Details (Village, Taluka, District)
+  village: { type: String, default: '' },
+  taluka: { type: String, default: '' },
+  district: { type: String, default: '' },
+  state: { type: String, default: 'Gujarat' },
+  pincode: { type: String, default: '' },
+  address: { type: String, required: false },
+
+  // Real World Authentication Verifications
+  mobile_verified: { type: Boolean, default: true },
+  email_verified: { type: Boolean, default: true },
+
+  // Verification & Trust
+  aadhaar_last4: { type: String, default: '' },
   status: {
     type: String,
     enum: ['pending', 'approved', 'blocked', 'suspended'],
-    default: 'pending'
+    default: 'approved'
   },
   trust_badge: {
     type: String,
     enum: ['pending', 'verified', 'suspended'],
-    default: 'pending'
+    default: 'verified'
   },
   admin_notes: {
     type: String,
     default: ''
   },
+
+  // Task Assignment & Work logs for Admins (Assigned by Super Admin)
+  assigned_tasks: [{
+    task_title: { type: String, required: true },
+    description: { type: String },
+    assigned_by: { type: String, default: 'Super Admin' },
+    status: { type: String, enum: ['pending', 'in_progress', 'completed'], default: 'pending' },
+    due_date: { type: Date },
+    created_at: { type: Date, default: Date.now }
+  }],
+
   crop_limit: {
     type: Number,
     default: 4
@@ -51,7 +73,7 @@ const userSchema = new mongoose.Schema({
   },
   trust_score: {
     type: Number,
-    default: 50 // Scale of 0-100, increases with successful deals and admin verification
+    default: 50
   },
   completed_deals: {
     type: Number,
@@ -66,7 +88,7 @@ const userSchema = new mongoose.Schema({
     default: 0
   }
 }, {
-  timestamps: true // This will automatically add created_at and updated_at
+  timestamps: true
 });
 
 const User = mongoose.model('User', userSchema);

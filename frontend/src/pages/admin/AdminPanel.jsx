@@ -9,11 +9,13 @@ import ManageCrops from './views/ManageCrops';
 import ManageTools from './views/ManageTools';
 import ManageMarketplace from './views/ManageMarketplace';
 import ManageBookings from './views/ManageBookings';
+import ManageSubAdmins from './views/ManageSubAdmins';
 
 function AdminPanel() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState('admin');
 
   // Global Admin State
   const [stats, setStats] = useState({ totalUsers: 0, totalCrops: 0, pendingCrops: 0, marketItems: 0 });
@@ -32,6 +34,7 @@ function AdminPanel() {
     if(parsedUser.role !== 'admin' && parsedUser.role !== 'superadmin') { navigate('/'); return; }
     
     setIsAdmin(true);
+    setUserRole(parsedUser.role);
     fetchData(parsedUser.token);
   }, [navigate]);
 
@@ -81,11 +84,11 @@ function AdminPanel() {
             <div className="flex items-center gap-4">
                {/* Quick Info / Avatar Placeholder */}
                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-bold text-gray-800">Super Admin</p>
+                  <p className="text-sm font-bold text-gray-800">{userRole === 'superadmin' ? 'Jaydipsinh (Super Admin)' : 'Operational Sub-Admin'}</p>
                   <p className="text-[10px] uppercase font-black tracking-wider text-green-600">System Online</p>
                </div>
                <div className="w-10 h-10 rounded-full bg-green-100 border-2 border-white shadow-md flex items-center justify-center font-black text-[#006400]">
-                 SA
+                 {userRole === 'superadmin' ? 'SA' : 'AD'}
                </div>
             </div>
          </header>
@@ -93,6 +96,7 @@ function AdminPanel() {
          {/* Dynamic View Rendering */}
          <div className="p-8 max-w-7xl mx-auto w-full">
             {activeTab === 'overview' && <DashboardOverview stats={stats} />}
+            {activeTab === 'sub-admins' && <ManageSubAdmins />}
             {activeTab === 'lands' && <ManageLands lands={lands} updateStatus={updateStatus} />}
             {activeTab === 'partnerships' && <ManagePartnerships partnerships={partnerships} onRefresh={() => fetchData(JSON.parse(localStorage.getItem('userInfo')).token)} />}
             {activeTab === 'users' && <ManageUsers users={users} lands={lands} partnerships={partnerships} marketplaceItems={marketplaceItems} updateStatus={updateStatus} />}

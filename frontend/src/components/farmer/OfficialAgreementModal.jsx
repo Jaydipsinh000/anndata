@@ -339,24 +339,42 @@ function OfficialAgreementModal({ land, onClose }) {
                   {tDoc.termsHeader}
                </h4>
                
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mb-4">
-                  <div className="bg-white/10 p-3.5 rounded-xl border border-white/10">
-                     <span className="text-slate-300 font-bold text-[10px] uppercase block mb-1">{tDoc.start}</span>
-                     <span className="font-black text-white text-sm md:text-base">{startDate}</span>
-                  </div>
+               {isSale ? (
+                  /* SALE DEED: Single Execution Date & Agreed Amount (No End Date) */
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center mb-2">
+                     <div className="bg-white/10 p-4 rounded-xl border border-white/10">
+                        <span className="text-slate-300 font-bold text-[10px] uppercase block mb-1">
+                          {docLang === 'gu' ? 'દસ્તાવેજ અને હસ્તાંતરણ તારીખ (Transfer Date)' : (docLang === 'hi' ? 'दस्तावेज़ एवं हस्तांतरण तिथि (Transfer Date)' : 'Deed Execution & Transfer Date')}
+                        </span>
+                        <span className="font-black text-white text-base md:text-lg">{startDate}</span>
+                     </div>
 
-                  <div className="bg-white/10 p-3.5 rounded-xl border border-white/10">
-                     <span className="text-slate-300 font-bold text-[10px] uppercase block mb-1">{tDoc.end}</span>
-                     <span className="font-black text-amber-300 text-sm md:text-base">{endDate}</span>
+                     <div className="bg-white/10 p-4 rounded-xl border border-white/10">
+                        <span className="text-slate-300 font-bold text-[10px] uppercase block mb-1">{tDoc.salePrice}</span>
+                        <span className="font-black text-emerald-400 text-base md:text-xl">₹ {land.price?.toLocaleString()}</span>
+                     </div>
                   </div>
+               ) : (
+                  /* LEASE & PARTNERSHIP: Start Date, End Date, and Price */
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mb-4">
+                     <div className="bg-white/10 p-3.5 rounded-xl border border-white/10">
+                        <span className="text-slate-300 font-bold text-[10px] uppercase block mb-1">{tDoc.start}</span>
+                        <span className="font-black text-white text-sm md:text-base">{startDate}</span>
+                     </div>
 
-                  <div className="bg-white/10 p-3.5 rounded-xl border border-white/10">
-                     <span className="text-slate-300 font-bold text-[10px] uppercase block mb-1">
-                        {isPartnership ? tDoc.investmentPrice : (isSale ? tDoc.salePrice : tDoc.rentPrice)}
-                     </span>
-                     <span className="font-black text-emerald-400 text-base md:text-xl">₹ {land.price?.toLocaleString()}</span>
+                     <div className="bg-white/10 p-3.5 rounded-xl border border-white/10">
+                        <span className="text-slate-300 font-bold text-[10px] uppercase block mb-1">{tDoc.end}</span>
+                        <span className="font-black text-amber-300 text-sm md:text-base">{endDate}</span>
+                     </div>
+
+                     <div className="bg-white/10 p-3.5 rounded-xl border border-white/10">
+                        <span className="text-slate-300 font-bold text-[10px] uppercase block mb-1">
+                           {isPartnership ? tDoc.investmentPrice : tDoc.rentPrice}
+                        </span>
+                        <span className="font-black text-emerald-400 text-base md:text-xl">₹ {land.price?.toLocaleString()}</span>
+                     </div>
                   </div>
-               </div>
+               )}
 
                {/* Specific terms per purpose */}
                {isLease && (
@@ -383,6 +401,7 @@ function OfficialAgreementModal({ land, onClose }) {
                   </div>
                )}
             </div>
+
 
             {/* Section 4: EXHAUSTIVE REAL-WORLD LEGAL CLAUSES */}
             <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-6">

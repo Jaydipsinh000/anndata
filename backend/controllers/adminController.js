@@ -5,11 +5,13 @@ import Land from '../models/Land.js';
 import Tool from '../models/Tool.js';
 import Partnership from '../models/Partnership.js';
 import AdvanceBooking from '../models/AdvanceBooking.js';
+import bcrypt from 'bcryptjs';
 
 export const getDashboardStats = async (req, res) => {
   try {
     const totalFarmers = await User.countDocuments({ role: 'farmer' });
     const totalBuyers = await User.countDocuments({ role: 'buyer' });
+    const totalAdmins = await User.countDocuments({ role: 'admin' });
     const totalCrops = await Crop.countDocuments();
     const activeDeals = await AdvanceBooking.countDocuments({ status: { $nin: ['completed', 'rejected'] } });
     const completedSales = await AdvanceBooking.countDocuments({ status: 'completed' });
@@ -17,6 +19,7 @@ export const getDashboardStats = async (req, res) => {
     res.json({
       totalFarmers,
       totalBuyers,
+      totalAdmins,
       totalCrops,
       activeDeals,
       completedSales
@@ -54,9 +57,95 @@ export const updateUserStatus = async (req, res) => {
   }
 };
 
+// ==========================================
+// SUPER ADMIN: SUB-ADMIN & TASK MANAGEMENT
+// ==========================================
+
+// 1. Get all Sub-Admins and their tasks
+export const getSubAdmins = async (req, res) => {
+  try {
+    const subAdmins = await User.find({ role: 'admin' }).select('-password').sort('-createdAt');
+    res.json(subAdmins);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// 2. Create a new Sub-Admin (Super Admin authorization)
+export const createSubAdmin = async (req, res) => {
+  try {
+    const { name, email, password, mobile } = req.body;
+
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(400).json({ message: 'User or Admin with this email already exists' });
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password || 'admin123', salt);
+
+    const subAdmin = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      mobile: mobile || '9876543210',
+      role: 'admin',
+      status: 'approved',
+      trust_badge: 'verified'
+    });
+
+    res.status(201).json({ message: 'Sub-Admin created successfully', subAdmin });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// 3. Assign Work Task to a Sub-Admin
+export const assignSubAdminTask = async (req, res) => {
+  try {
+    const { admin_id, task_title, description, due_date } = req.body;
+    const subAdmin = await User.findById(admin_id);
+
+    if (!subAdmin) return res.status(404).json({ message: 'Sub-Admin not found' });
+
+    subAdmin.assigned_tasks.push({
+      task_title,
+      description,
+      assigned_by: req.user?.name || 'Jaydipsinh (Super Admin)',
+      status: 'pending',
+      due_date: due_date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    });
+
+    await subAdmin.save();
+    res.json({ message: 'Task assigned successfully', subAdmin });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// 4. Update Task Status (Sub-Admin marks task completed)
+export const updateTaskStatus = async (req, res) => {
+  try {
+    const { admin_id, task_id, status } = req.body;
+    const subAdmin = await User.findById(admin_id);
+
+    if (!subAdmin) return res.status(404).json({ message: 'Sub-Admin not found' });
+
+    const task = subAdmin.assigned_tasks.id(task_id);
+    if (task) {
+      task.status = status;
+      await subAdmin.save();
+      res.json({ message: 'Task status updated', subAdmin });
+    } else {
+      res.status(404).json({ message: 'Task not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Crops Management
 export const getAdminCrops = async (req, res) => {
   try {
-    const crops = await Crop.find().populate('user_id', 'name email').sort('-createdAt');
+    const crops = await Crop.find().populate('user_id', 'name email mobile village taluka district').sort('-createdAt');
     res.json(crops);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -80,7 +169,6 @@ export const updateCropStatus = async (req, res) => {
   }
 };
 
-// --- NEW OVERHAUL: ADMIN CAN FORCE UPDATE CROP PRICE AND STATUS ---
 export const forceUpdateCrop = async (req, res) => {
   try {
     const { status, price } = req.body;
@@ -92,7 +180,6 @@ export const forceUpdateCrop = async (req, res) => {
     
     await crop.save();
 
-    // The user requested that if Admin forces "Sold", all pending bookings for this crop get rejected automatically.
     if (status === 'sold') {
        await AdvanceBooking.updateMany(
          { crop_id: crop._id, status: { $in: ['pending', 'negotiating', 'accepted', 'buyer_confirmed'] } },
@@ -106,15 +193,17 @@ export const forceUpdateCrop = async (req, res) => {
   }
 };
 
+// Land Management
 export const getAdminLands = async (req, res) => {
   try {
-    const lands = await Land.find().populate('farmer_id').sort('-createdAt');
+    const lands = await Land.find().populate('farmer_id', 'name email mobile village taluka district').sort('-createdAt');
     res.json(lands);
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
+
 export const updateLandStatus = async (req, res) => {
   try {
-    const { status, admin_message, contract_start_date, contract_end_date, trust_badge, next_payment_date, payment_schedule } = req.body;
+    const { status, admin_message, contract_start_date, contract_end_date, trust_badge, next_payment_date, payment_schedule, officer_assigned, inspection_date } = req.body;
     const land = await Land.findById(req.params.id);
     
     if (land) {
@@ -126,6 +215,8 @@ export const updateLandStatus = async (req, res) => {
       if (trust_badge) land.trust_badge = trust_badge;
       if (next_payment_date) land.next_payment_date = next_payment_date;
       if (payment_schedule) land.payment_schedule = payment_schedule;
+      if (officer_assigned) land.officer_assigned = officer_assigned;
+      if (inspection_date) land.inspection_date = inspection_date;
       
       const updatedLand = await land.save();
 
@@ -155,12 +246,14 @@ export const updateLandStatus = async (req, res) => {
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
 
+// Tools & Marketplace
 export const getAdminTools = async (req, res) => {
   try {
-    const tools = await Tool.find().populate('user_id').sort('-createdAt');
+    const tools = await Tool.find().populate('user_id', 'name email mobile village taluka district').sort('-createdAt');
     res.json(tools);
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
+
 export const updateToolStatus = async (req, res) => {
   try {
     const tool = await Tool.findById(req.params.id);
@@ -175,10 +268,11 @@ export const updateToolStatus = async (req, res) => {
 
 export const getAdminMarketplace = async (req, res) => {
   try {
-    const items = await Marketplace.find().populate('farmer_id').sort('-createdAt');
+    const items = await Marketplace.find().populate('farmer_id', 'name email mobile village taluka district').sort('-createdAt');
     res.json(items);
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
+
 export const updateMarketplaceStatus = async (req, res) => {
   try {
     const item = await Marketplace.findById(req.params.id);

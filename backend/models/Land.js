@@ -11,7 +11,7 @@ const landSchema = new mongoose.Schema({
     lat: { type: Number }, 
     lng: { type: Number }, 
     url: { type: String } 
-  }, // Will store Google Map link/pin
+  }, // Stores Landmark / Map link
   
   // Step 2: Quality
   soil_type: { type: String, enum: ['black', 'red', 'sandy', 'clay', 'alluvial', 'laterite', 'arid', 'light', 'medium'], required: false },
@@ -26,7 +26,7 @@ const landSchema = new mongoose.Schema({
   trust_badge: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' },
   
   // Step 4: Purpose specific
-  purpose: { type: String, enum: ['lease', 'sale', 'partnership'], default: 'lease' },
+  purpose: { type: String, enum: ['lease', 'sale', 'sell', 'partnership'], default: 'lease' },
   
   // Option 1: Lease/Rent
   lease_duration_years: { type: Number },
@@ -44,7 +44,15 @@ const landSchema = new mongoose.Schema({
 
   // Admin and Lifecycle Fields
   admin_message: { type: String, default: '' },
-  status: { type: String, enum: ['pending', 'under_discussion', 'active', 'rejected', 'rented_to_company', 'partnership_active', 'sold'], default: 'pending' },
+  farmer_notes: { type: String, default: '' },
+  officer_assigned: { type: String, default: '' },
+  inspection_date: { type: Date },
+
+  status: { 
+    type: String, 
+    enum: ['pending', 'under_discussion', 'verification_in_progress', 'active', 'rejected', 'rented_to_company', 'partnership_active', 'sold'], 
+    default: 'pending' 
+  },
   
   // Rent Deal specific tracks
   next_payment_date: { type: Date },

@@ -1,9 +1,10 @@
 import React from 'react';
-import { LayoutDashboard, Map, Users, Wheat, Hammer, Store, Target, LogOut, Shield } from 'lucide-react';
+import { LayoutDashboard, Map, Users, Wheat, Hammer, Store, Target, LogOut, Shield, UserCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const navItems = [
   { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={20} /> },
+  { id: 'sub-admins', label: 'Sub-Admins & Tasks', icon: <UserCheck size={20} /> },
   { id: 'lands', label: 'Land Deals', icon: <Map size={20} /> },
   { id: 'partnerships', label: 'Partnership Ops', icon: <Target size={20} /> },
   { id: 'users', label: 'Users & Farmers', icon: <Users size={20} /> },
@@ -63,7 +64,7 @@ function AdminSidebar({ activeTab, setActiveTab }) {
             localStorage.removeItem('userInfo');
             navigate('/login');
           }}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-red-100 bg-red-900/50 border border-red-800 hover:bg-red-600 hover:text-white transition-all group shadow-lg"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-red-100 bg-red-900/50 border border-red-800 hover:bg-red-600 hover:text-white transition-all group shadow-lg cursor-pointer"
         >
           <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
           Log Out Securely

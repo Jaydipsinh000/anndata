@@ -1,19 +1,25 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { useTranslation } from 'react-i18next';
-import { Map, MapPin, Plus, Clock, XCircle, CheckCircle, FileText, Trash2, Award, Handshake, Landmark } from 'lucide-react';
+import { useTranslation as useTrans } from 'react-i18next';
+import { Map, MapPin, Plus, Clock, XCircle, CheckCircle, FileText, Trash2, Award, Handshake, Landmark, MessageSquare, ShieldCheck, Check, Send, AlertCircle } from 'lucide-react';
 import { translateText } from '../utils/translate';
 import LandUploadForm from '../components/farmer/LandUploadForm';
 import OfficialAgreementModal from '../components/farmer/OfficialAgreementModal';
+import toast from 'react-hot-toast';
 
 function LandManagement() {
-  const { t, i18n } = useTranslation();
+  const { t, i18n } = useTrans();
   const [lands, setLands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedAgreementLand, setSelectedAgreementLand] = useState(null);
 
-  useEffect(() => {
+  // Farmer Negotiation Note Modal
+  const [replyModalLand, setReplyModalLand] = useState(null);
+  const [farmerNoteText, setFarmerNoteText] = useState('');
+  const [submittingReply, setSubmittingReply] = useState(false);
+
+  const fetchLands = () => {
     const userInfoStr = localStorage.getItem('userInfo');
     if(!userInfoStr) {
       setLands([]);
@@ -36,6 +42,10 @@ function LandManagement() {
         setLands([]);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchLands();
   }, []);
 
   const deleteLand = async (id) => {
@@ -55,6 +65,72 @@ function LandManagement() {
     } catch (err) {
       setLands(previousLands);
       console.error('Error deleting land:', err);
+    }
+  };
+
+  // Farmer accepts Admin counter offer & requests physical verification
+  const handleAcceptTerms = async (landId) => {
+    const userInfoStr = localStorage.getItem('userInfo');
+    if(!userInfoStr) return;
+    const token = JSON.parse(userInfoStr).token;
+
+    const toastId = toast.loading('Accepting Admin terms...');
+    try {
+      const res = await fetch(`/api/lands/${landId}/respond`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ action: 'accept', farmer_notes: 'Farmer accepted Admin counter terms & requested physical document verification.' })
+      });
+
+      if (res.ok) {
+        toast.success('Terms accepted! Physical field & document inspection requested.', { id: toastId });
+        fetchLands();
+      } else {
+        toast.error('Failed to update status', { id: toastId });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Error accepting terms', { id: toastId });
+    }
+  };
+
+  // Farmer submits reply note to Admin
+  const handleSendFarmerReply = async (e) => {
+    e.preventDefault();
+    if (!farmerNoteText.trim()) return;
+
+    const userInfoStr = localStorage.getItem('userInfo');
+    if(!userInfoStr) return;
+    const token = JSON.parse(userInfoStr).token;
+
+    setSubmittingReply(true);
+    const toastId = toast.loading('Sending note to Admin...');
+    try {
+      const res = await fetch(`/api/lands/${replyModalLand._id}/respond`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ farmer_notes: farmerNoteText.trim() })
+      });
+
+      if (res.ok) {
+        toast.success('Reply note sent to Admin desk!', { id: toastId });
+        setReplyModalLand(null);
+        setFarmerNoteText('');
+        fetchLands();
+      } else {
+        toast.error('Failed to send note', { id: toastId });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Error sending note', { id: toastId });
+    } finally {
+      setSubmittingReply(false);
     }
   };
 
@@ -107,7 +183,7 @@ function LandManagement() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         
         <div className="flex flex-col md:flex-row justify-end items-center bg-transparent mb-8">
-             <button onClick={() => setIsUploadOpen(true)} className="bg-[#006400] text-white px-8 py-4 rounded-2xl font-bold hover:bg-[#228b22] transition-colors shadow-xl flex items-center gap-2 transform hover:-translate-y-1">
+             <button onClick={() => setIsUploadOpen(true)} className="bg-[#006400] text-white px-8 py-4 rounded-2xl font-bold hover:bg-[#228b22] transition-colors shadow-xl flex items-center gap-2 transform hover:-translate-y-1 cursor-pointer">
                <Plus size={20} /> {t('land.postProperty')}
              </button>
         </div>
@@ -145,14 +221,71 @@ function LandManagement() {
                 </div>
 
                 <div className="p-8 flex-grow flex flex-col relative z-10 bg-white">
-                   {/* PENDING REVIEW */}
+                   
+                   {/* STAGE 1: PENDING PROPOSAL REQUEST */}
                    {land.status === 'pending' && (
-                      <div className="bg-orange-50 border border-orange-100 text-orange-700 p-5 rounded-2xl mb-4 flex items-start gap-4">
-                         <Clock className="shrink-0 mt-0.5" />
+                      <div className="bg-orange-50 border border-orange-200 text-orange-800 p-5 rounded-2xl mb-4 flex items-start gap-3">
+                         <Clock className="shrink-0 mt-0.5 text-orange-600" size={20} />
                          <div>
-                            <p className="font-bold">{t('land.pendingReview')}</p>
-                            <p className="text-sm font-medium opacity-80 mt-1">{t('land.pendingMsg')}</p>
+                            <p className="font-extrabold text-sm">{t('land.pendingReview', 'Land Proposal Submitted (પ્રસ્તાવ સુપ્રત કરાયેલ છે)')}</p>
+                            <p className="text-xs font-medium opacity-90 mt-1">{t('land.pendingMsg', 'Your property details are being evaluated by our land acquisition desk. Admin will post feedback or counter offer shortly.')}</p>
                          </div>
+                      </div>
+                   )}
+
+                   {/* STAGE 2: UNDER DISCUSSION & ADMIN COUNTER OFFER */}
+                   {land.status === 'under_discussion' && (
+                      <div className="bg-gradient-to-br from-amber-50 to-blue-50 border-2 border-amber-300 text-slate-800 p-5 rounded-2xl mb-4 space-y-3 shadow-sm">
+                         <div className="flex items-center gap-2 text-amber-800 font-extrabold text-xs uppercase tracking-wider">
+                            <MessageSquare size={18} className="text-amber-600" />
+                            <span>Admin Feedback & Counter Terms</span>
+                         </div>
+                         
+                         {land.admin_message && (
+                            <div className="bg-white p-3.5 rounded-xl border border-amber-200 text-xs font-medium text-amber-950 shadow-inner">
+                               <span className="font-bold text-amber-800 block mb-1">Company Desk Counter Offer:</span>
+                               "{translateText(land.admin_message)}"
+                            </div>
+                         )}
+
+                         {land.farmer_notes && (
+                            <div className="bg-blue-50 p-3 rounded-xl border border-blue-200 text-xs text-blue-900 font-medium">
+                               <span className="font-bold text-blue-800 block mb-0.5">Your Response Note:</span>
+                               "{land.farmer_notes}"
+                            </div>
+                         )}
+
+                         <div className="pt-2 flex flex-col gap-2">
+                            <button 
+                              onClick={() => handleAcceptTerms(land._id)}
+                              className="w-full py-2.5 bg-[#006400] hover:bg-[#004d00] text-white rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                            >
+                               <Check size={16} /> Accept Admin Terms & Request Inspection
+                            </button>
+
+                            <button 
+                              onClick={() => { setReplyModalLand(land); setFarmerNoteText(land.farmer_notes || ''); }}
+                              className="w-full py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                               <MessageSquare size={16} /> Send Counter Note to Admin
+                            </button>
+                         </div>
+                      </div>
+                   )}
+
+                   {/* STAGE 3: PHYSICAL DOCUMENT & FIELD VERIFICATION IN PROGRESS */}
+                   {land.status === 'verification_in_progress' && (
+                      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 text-purple-950 p-5 rounded-2xl mb-4 space-y-2 shadow-sm">
+                         <div className="flex items-center gap-2 text-purple-800 font-extrabold text-xs uppercase tracking-wider">
+                            <ShieldCheck size={18} className="text-purple-600" />
+                            <span>Physical Inspection & 7/12 Verification</span>
+                         </div>
+                         <p className="text-xs font-semibold text-purple-900">
+                            {land.officer_assigned || 'Anndata Authorized Officer assigned for physical document & site verification.'}
+                         </p>
+                         <p className="text-[11px] text-purple-700 opacity-90 font-medium">
+                            Executive will inspect 7/12 & 8A land records, borewell, and farm boundaries before final legal seal.
+                         </p>
                       </div>
                    )}
 
@@ -168,14 +301,14 @@ function LandManagement() {
                          </div>
                          <button 
                            onClick={() => deleteLand(land._id)}
-                           className="self-end mt-2 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md transition-colors active:scale-95"
+                           className="self-end mt-2 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md transition-colors active:scale-95 cursor-pointer"
                          >
                            <Trash2 size={16} /> Acknowledge & Remove
                          </button>
                       </div>
                    )}
 
-                   {/* 1. CORPORATE LEASE ACTIVE CARD (RENT) */}
+                   {/* STAGE 4: CORPORATE LEASE ACTIVE CARD (RENT) */}
                    {land.status === 'rented_to_company' && (
                       <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 border-2 border-indigo-400/80 text-white p-6 rounded-3xl mb-4 shadow-xl relative overflow-hidden group/card">
                          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -217,7 +350,7 @@ function LandManagement() {
                       </div>
                    )}
 
-                   {/* 2. CORPORATE PARTNERSHIP ACTIVE CARD */}
+                   {/* CORPORATE PARTNERSHIP ACTIVE CARD */}
                    {land.status === 'partnership_active' && (
                       <div className="bg-gradient-to-br from-emerald-950 via-teal-950 to-emerald-900 border-2 border-emerald-400/80 text-white p-6 rounded-3xl mb-4 shadow-xl relative overflow-hidden">
                          <div className="flex items-center justify-between mb-4 border-b border-emerald-700/50 pb-3">
@@ -253,7 +386,7 @@ function LandManagement() {
                       </div>
                    )}
 
-                   {/* 3. SOLD CARD */}
+                   {/* SOLD CARD */}
                    {land.status === 'sold' && (
                       <div className="bg-gradient-to-br from-amber-950 via-stone-900 to-amber-900 border-2 border-amber-500/80 text-white p-6 rounded-3xl mb-4 shadow-xl relative overflow-hidden">
                          <div className="flex items-center justify-between mb-4 border-b border-amber-700/50 pb-3">
@@ -284,8 +417,8 @@ function LandManagement() {
 
                    <div className="mt-auto space-y-3 pt-6 border-t border-dashed border-gray-200">
                       <div className="flex justify-between items-center text-sm font-bold">
-                         <span className="text-gray-400">{land.purpose === 'partnership' ? 'Partnership Capital' : (land.purpose === 'sell' ? 'Asking Price' : 'Annual Rent')}</span>
-                         <span className="text-[#006400] text-lg font-black">₹ {land.price.toLocaleString()}</span>
+                         <span className="text-gray-400">{land.purpose === 'partnership' ? 'Partnership Capital' : (land.purpose === 'sell' || land.purpose === 'sale' ? 'Asking Price' : 'Annual Rent')}</span>
+                         <span className="text-[#006400] text-lg font-black">₹ {land.price?.toLocaleString()}</span>
                       </div>
                    </div>
 
@@ -301,6 +434,58 @@ function LandManagement() {
         onClose={() => setIsUploadOpen(false)}
         onSuccess={(newLand) => setLands([newLand, ...lands])}
       />
+
+      {/* FARMER REPLY / COUNTER NOTE MODAL */}
+      {replyModalLand && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-white rounded-[2rem] p-6 md:p-8 max-w-lg w-full shadow-2xl border border-slate-200">
+             <div className="flex justify-between items-center mb-4">
+                <h3 className="font-extrabold text-lg text-slate-900 flex items-center gap-2">
+                   <MessageSquare className="text-[#006400]" size={20}/> Send Note / Counter Term to Admin
+                </h3>
+                <button onClick={() => setReplyModalLand(null)} className="p-2 text-slate-400 hover:text-slate-600">
+                   <X size={20}/>
+                </button>
+             </div>
+             
+             <form onSubmit={handleSendFarmerReply} className="space-y-4">
+                <div className="bg-amber-50 p-3.5 rounded-xl border border-amber-200 text-xs text-amber-900 font-medium">
+                   <span className="font-bold block mb-1">Company Counter Offer:</span>
+                   "{translateText(replyModalLand.admin_message || 'N/A')}"
+                </div>
+
+                <div>
+                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">Your Response / Revised Note</label>
+                   <textarea 
+                     required
+                     rows="4" 
+                     placeholder="e.g. I agree to ₹45,000/year rent. Please send authorized officer for 7/12 document & physical field verification." 
+                     value={farmerNoteText} 
+                     onChange={e => setFarmerNoteText(e.target.value)} 
+                     className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-[#006400]"
+                   ></textarea>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                   <button 
+                     type="button" 
+                     onClick={() => setReplyModalLand(null)} 
+                     className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-xs hover:bg-slate-200 transition-colors"
+                   >
+                      Cancel
+                   </button>
+                   <button 
+                     type="submit" 
+                     disabled={submittingReply} 
+                     className="flex-1 py-3 bg-[#006400] text-white font-extrabold rounded-xl text-xs hover:bg-[#004d00] transition-colors shadow-md flex items-center justify-center gap-1.5"
+                   >
+                      <Send size={16}/> Send Response Note
+                   </button>
+                </div>
+             </form>
+          </div>
+        </div>
+      )}
 
       {/* ULTRA PROFESSIONAL MULTILINGUAL AGREEMENT CERTIFICATE MODAL */}
       <OfficialAgreementModal 

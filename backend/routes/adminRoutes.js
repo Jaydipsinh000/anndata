@@ -4,7 +4,8 @@ import {
   getAdminCrops, updateCropStatus, forceUpdateCrop,
   getAdminLands, updateLandStatus,
   getAdminTools, updateToolStatus,
-  getAdminMarketplace, updateMarketplaceStatus
+  getAdminMarketplace, updateMarketplaceStatus,
+  getSubAdmins, createSubAdmin, assignSubAdminTask, updateTaskStatus
 } from '../controllers/adminController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -13,6 +14,12 @@ const router = express.Router();
 router.get('/stats', protect, admin, getDashboardStats);
 router.get('/users', protect, admin, getUsers);
 router.patch('/users/:id/status', protect, admin, updateUserStatus);
+
+// Super Admin Task Management Routes
+router.get('/sub-admins', protect, admin, getSubAdmins);
+router.post('/create-sub-admin', protect, admin, createSubAdmin);
+router.post('/assign-task', protect, admin, assignSubAdminTask);
+router.put('/update-task-status', protect, admin, updateTaskStatus);
 
 router.get('/crops', protect, admin, getAdminCrops);
 router.patch('/crops/:id/status', protect, admin, updateCropStatus);

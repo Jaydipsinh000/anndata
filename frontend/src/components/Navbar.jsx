@@ -1,25 +1,41 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ShieldAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import CompleteProfileModal from './CompleteProfileModal';
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showCompleteProfile, setShowCompleteProfile] = useState(false);
   const location = useLocation();
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
 
   const toggleMenu = () => setIsOpen(!isOpen);
-  const navigate = useNavigate();
 
   const changeLanguage = (lang) => {
     i18n.changeLanguage(lang);
     localStorage.setItem('selectedLang', lang);
   };
 
-  const userInfo = localStorage.getItem('userInfo');
-  const isLoggedIn = !!userInfo;
-  const userRole = isLoggedIn ? JSON.parse(userInfo).role : null;
+  const userInfoStr = localStorage.getItem('userInfo');
+  const isLoggedIn = !!userInfoStr;
+  const parsedUser = isLoggedIn ? JSON.parse(userInfoStr) : null;
+  const userRole = parsedUser ? parsedUser.role : null;
+
+  // Check if profile is incomplete (missing mobile or village/taluka/district)
+  const isProfileIncomplete = isLoggedIn && parsedUser && (!parsedUser.mobile || parsedUser.mobile === '9999999999' || !parsedUser.village || !parsedUser.taluka || !parsedUser.district);
+
+  useEffect(() => {
+    // Automatically trigger profile completion modal for Google users with incomplete location/mobile
+    if (isProfileIncomplete) {
+      const timer = setTimeout(() => {
+        setShowCompleteProfile(true);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoggedIn, parsedUser?.mobile, parsedUser?.village]);
 
   const handleLogout = () => {
     localStorage.removeItem('userInfo');
@@ -66,6 +82,17 @@ function Navbar() {
 
   return (
     <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'py-2' : 'py-4'}`}>
+      
+      {/* Complete Profile Modal */}
+      <CompleteProfileModal 
+        isOpen={showCompleteProfile}
+        onClose={() => setShowCompleteProfile(false)}
+        onUpdated={(updatedUser) => {
+          setShowCompleteProfile(false);
+          window.location.reload();
+        }}
+      />
+
       <div className={`mx-4 sm:mx-6 md:mx-auto max-w-7xl rounded-2xl glass-effect-dark px-4 sm:px-6 py-2 sm:py-3 flex items-center justify-between text-white transition-all`}>
         {/* Logo & Title */}
         <Link to="/home" className="flex items-center gap-3 decoration-none hover:opacity-90 transition-opacity">
@@ -96,6 +123,16 @@ function Navbar() {
               );
             })}
           </ul>
+
+          {/* Incomplete Profile Alert Button */}
+          {isProfileIncomplete && (
+            <button 
+              onClick={() => setShowCompleteProfile(true)}
+              className="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-400/40 rounded-xl text-[10px] font-black uppercase flex items-center gap-1 animate-pulse hover:bg-amber-500/30 transition-colors cursor-pointer"
+            >
+               <ShieldAlert size={12}/> Complete Profile
+            </button>
+          )}
 
           {/* Language Switch */}
           <div className="flex gap-0.5 items-center ml-1 border-l border-white/20 pl-2 xl:ml-2 xl:pl-3 shrink-0">
@@ -160,6 +197,15 @@ function Navbar() {
               </Link>
             );
           })}
+
+          {isProfileIncomplete && (
+            <button 
+              onClick={() => { setShowCompleteProfile(true); setIsOpen(false); }}
+              className="w-full py-3 bg-amber-500/20 text-amber-300 font-extrabold rounded-xl border border-amber-400/40 text-xs"
+            >
+               ⚠️ Complete Address & Mobile
+            </button>
+          )}
           
           <div className="my-2 border-t border-white/20"></div>
           
