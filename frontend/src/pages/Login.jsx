@@ -83,7 +83,7 @@ function Login() {
           toast.error(data.message || 'OTP Error', { id: toastId });
         }
       } catch (e) {
-        toast.error('SMS Gateway Error', { id: toastId });
+        toast.error(`Firebase SMS Error: ${err?.message || 'Please add Vercel domain to Firebase Console Authorized Domains'}`, { id: toastId, duration: 8000 });
       }
     }
   };

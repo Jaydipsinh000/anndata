@@ -49,7 +49,7 @@ function Register() {
       setMobileOtpSent(true);
       toast.success(`📱 Real SMS Sent to +91 ${formData.mobile}! Please check your phone text messages for 6-digit OTP.`, { id: toastId, duration: 9000 });
     } catch (err) {
-      console.warn('Firebase Phone Auth notice, falling back to server gateway:', err?.message);
+      console.warn('Firebase Phone Auth error:', err?.message);
       // Fallback server request if domain authorization required
       try {
         const res = await fetch('/api/users/send-mobile-otp', {
@@ -66,7 +66,7 @@ function Register() {
           toast.error(data.message || 'OTP SMS error', { id: toastId });
         }
       } catch (e) {
-        toast.error('SMS Gateway error', { id: toastId });
+        toast.error(`Firebase SMS Error: ${err?.message || 'Please add Vercel domain to Firebase Console Authorized Domains'}`, { id: toastId, duration: 8000 });
       }
     }
   };
