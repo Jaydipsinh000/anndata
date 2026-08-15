@@ -70,8 +70,8 @@ function AdminPanel() {
 
   return (
     <div className="flex min-h-screen bg-[#f8fafc] font-sans selection:bg-[#006400] selection:text-white">
-      {/* Sidebar Component */}
-      <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      {/* Sidebar Component with Strict Role Segregation */}
+      <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} userRole={userRole} />
       
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col h-screen overflow-y-auto">
@@ -84,26 +84,26 @@ function AdminPanel() {
             <div className="flex items-center gap-4">
                {/* Quick Info / Avatar Placeholder */}
                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-bold text-gray-800">{userRole === 'superadmin' ? 'Jaydipsinh (Super Admin)' : 'Operational Sub-Admin'}</p>
+                  <p className="text-sm font-bold text-gray-800">{userRole === 'superadmin' ? '👑 Jaydipsinh (Super Admin)' : '🛠️ Sub-Admin Work Desk'}</p>
                   <p className="text-[10px] uppercase font-black tracking-wider text-green-600">System Online</p>
                </div>
-               <div className="w-10 h-10 rounded-full bg-green-100 border-2 border-white shadow-md flex items-center justify-center font-black text-[#006400]">
+               <div className={`w-10 h-10 rounded-full border-2 border-white shadow-md flex items-center justify-center font-black ${userRole === 'superadmin' ? 'bg-amber-100 text-amber-900' : 'bg-indigo-100 text-indigo-900'}`}>
                  {userRole === 'superadmin' ? 'SA' : 'AD'}
                </div>
             </div>
          </header>
 
-         {/* Dynamic View Rendering */}
+         {/* Dynamic View Rendering with Role Segregation */}
          <div className="p-8 max-w-7xl mx-auto w-full">
-            {activeTab === 'overview' && <DashboardOverview stats={stats} />}
-            {activeTab === 'sub-admins' && <ManageSubAdmins />}
-            {activeTab === 'lands' && <ManageLands lands={lands} updateStatus={updateStatus} />}
-            {activeTab === 'partnerships' && <ManagePartnerships partnerships={partnerships} onRefresh={() => fetchData(JSON.parse(localStorage.getItem('userInfo')).token)} />}
-            {activeTab === 'users' && <ManageUsers users={users} lands={lands} partnerships={partnerships} marketplaceItems={marketplaceItems} updateStatus={updateStatus} />}
-            {activeTab === 'crops' && <ManageCrops crops={crops} updateStatus={updateStatus} onRefresh={() => fetchData(JSON.parse(localStorage.getItem('userInfo')).token)} />}
-            {activeTab === 'tools' && <ManageTools tools={tools} updateStatus={updateStatus} />}
-            {activeTab === 'marketplace' && <ManageMarketplace items={marketplaceItems} updateStatus={updateStatus} />}
-            {activeTab === 'bookings' && <ManageBookings />}
+            {activeTab === 'overview' && <DashboardOverview stats={stats} userRole={userRole} />}
+            {activeTab === 'sub-admins' && userRole === 'superadmin' && <ManageSubAdmins />}
+            {activeTab === 'lands' && <ManageLands lands={lands} updateStatus={updateStatus} userRole={userRole} />}
+            {activeTab === 'partnerships' && <ManagePartnerships partnerships={partnerships} userRole={userRole} onRefresh={() => fetchData(JSON.parse(localStorage.getItem('userInfo')).token)} />}
+            {activeTab === 'users' && <ManageUsers users={users} lands={lands} partnerships={partnerships} marketplaceItems={marketplaceItems} updateStatus={updateStatus} userRole={userRole} />}
+            {activeTab === 'crops' && <ManageCrops crops={crops} updateStatus={updateStatus} userRole={userRole} onRefresh={() => fetchData(JSON.parse(localStorage.getItem('userInfo')).token)} />}
+            {activeTab === 'tools' && <ManageTools tools={tools} updateStatus={updateStatus} userRole={userRole} />}
+            {activeTab === 'marketplace' && <ManageMarketplace items={marketplaceItems} updateStatus={updateStatus} userRole={userRole} />}
+            {activeTab === 'bookings' && <ManageBookings userRole={userRole} />}
          </div>
       </main>
     </div>

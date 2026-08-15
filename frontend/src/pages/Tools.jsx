@@ -5,6 +5,7 @@ import ToolUploadForm from '../components/farmer/ToolUploadForm';
 import { useTranslation } from 'react-i18next';
 import { translateText } from '../utils/translate';
 import ToolCalendarModal from '../components/ToolCalendarModal';
+import FarmerCropCalendar from '../components/farmer/FarmerCropCalendar';
 
 function Tools() {
   const { t } = useTranslation();
@@ -50,8 +51,11 @@ function Tools() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         
+        {/* Smart Farmer Crop Calendar Module */}
+        <FarmerCropCalendar />
+
         {/* Controls */}
-        <div className="flex flex-col md:flex-row justify-between items-center bg-transparent mb-8 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-center bg-transparent mb-8 gap-4 mt-12">
              <div className="relative w-full md:w-1/2">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input 
@@ -60,7 +64,7 @@ function Tools() {
                   className="w-full bg-white border border-gray-200 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-gray-800 transition-all font-medium shadow-sm"
                 />
              </div>
-             <button onClick={() => setIsUploadOpen(true)} className="w-full md:w-auto bg-gray-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-black transition-colors shadow-xl flex items-center justify-center gap-2 transform hover:-translate-y-1">
+             <button onClick={() => setIsUploadOpen(true)} className="w-full md:w-auto bg-gray-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-black transition-colors shadow-xl flex items-center justify-center gap-2 transform hover:-translate-y-1 cursor-pointer">
                <Plus size={20} /> {t('tools.listTool')}
              </button>
         </div>
@@ -98,25 +102,23 @@ function Tools() {
                        <p className="font-bold text-gray-700">{tool.stock} Units Total</p>
                      </div>
                      <div className="flex items-center gap-3">
-                       <div className="bg-white p-2 rounded-xl shadow-sm"><MapPin size={18} className="text-blue-500" /></div>
-                       <p className="font-bold text-gray-700">{tool.user_id?.name || 'Local Verified Owner'}</p>
+                       <div className="bg-white p-2 rounded-xl shadow-sm"><MapPin size={18} className="text-blue-600" /></div>
+                       <p className="font-bold text-gray-700">{translateText(tool.owner_id?.address) || 'Gujarat'}</p>
                      </div>
                    </div>
 
-                   <div className="mt-auto space-y-3">
-                      <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center group-hover:border-indigo-100 transition-colors">
-                          <span className="text-sm font-bold text-gray-500">{t('tools.buy')}</span>
-                          <span className="text-xl font-black text-gray-900">₹{tool.price ? tool.price.toLocaleString() : 'N/A'}</span>
-                      </div>
-                      <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center group-hover:border-indigo-100 transition-colors">
-                          <span className="text-sm font-bold text-gray-500">{t('tools.rent')} <span className="text-xs font-medium text-gray-400 block">{translateText(tool.rent_duration || 'Daily')}</span></span>
-                          <span className="text-xl font-black text-indigo-600">₹{tool.rent_price ? tool.rent_price.toLocaleString() : 'N/A'}</span>
-                      </div>
-                   </div>
-
-                   <div className="mt-6 flex gap-3">
-                      <button onClick={() => setCheckoutItem({...tool, _tradeType: 'Buy'})} className="flex-1 bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition-colors">{t('tools.buy')}</button>
-                      <button onClick={() => setCheckoutItem({...tool, _tradeType: 'Rent'})} className="flex-1 bg-indigo-50 text-indigo-600 font-bold py-3.5 rounded-xl hover:bg-indigo-100 transition-colors">{t('tools.rent')}</button>
+                   <div className="mt-auto pt-6 border-t border-gray-200 flex justify-between items-center">
+                     <div>
+                       <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Daily Rate</p>
+                       <p className="text-3xl font-black text-gray-900">₹{tool.daily_rate}<span className="text-sm font-bold text-gray-500">/day</span></p>
+                     </div>
+                     
+                     <button 
+                      onClick={() => setCheckoutItem(tool)}
+                      className="bg-gray-900 hover:bg-black text-white font-bold py-3 px-6 rounded-xl transition-all shadow-md hover:shadow-lg text-sm cursor-pointer"
+                     >
+                       Book Tool
+                     </button>
                    </div>
                 </div>
               </div>
@@ -125,16 +127,13 @@ function Tools() {
         )}
       </div>
 
-      <ToolUploadForm 
-        isOpen={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)}
-        onSuccess={(newTool) => setTools([newTool, ...tools])}
-      />
-
-      {checkoutItem && <ToolCalendarModal item={checkoutItem} onClose={() => setCheckoutItem(null)} />}
+      <ToolUploadForm isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
+      
+      {checkoutItem && (
+        <ToolCalendarModal tool={checkoutItem} onClose={() => setCheckoutItem(null)} />
+      )}
     </div>
   );
 }
 
 export default Tools;
-

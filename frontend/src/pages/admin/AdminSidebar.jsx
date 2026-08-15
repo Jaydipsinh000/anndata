@@ -2,19 +2,22 @@ import React from 'react';
 import { LayoutDashboard, Map, Users, Wheat, Hammer, Store, Target, LogOut, Shield, UserCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const navItems = [
-  { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={20} /> },
-  { id: 'sub-admins', label: 'Sub-Admins & Tasks', icon: <UserCheck size={20} /> },
-  { id: 'lands', label: 'Land Deals', icon: <Map size={20} /> },
-  { id: 'partnerships', label: 'Partnership Ops', icon: <Target size={20} /> },
-  { id: 'users', label: 'Users & Farmers', icon: <Users size={20} /> },
-  { id: 'crops', label: 'Crop Database', icon: <Wheat size={20} /> },
-  { id: 'tools', label: 'Tool Rentals', icon: <Hammer size={20} /> },
-  { id: 'marketplace', label: 'Marketplace', icon: <Store size={20} /> },
-];
-
-function AdminSidebar({ activeTab, setActiveTab }) {
+function AdminSidebar({ activeTab, setActiveTab, userRole }) {
   const navigate = useNavigate();
+
+  const allNavItems = [
+    { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={20} /> },
+    // Only Super Admin can see and manage Sub-Admins & Tasks
+    ...(userRole === 'superadmin' ? [
+      { id: 'sub-admins', label: '👑 Sub-Admins & Tasks', icon: <UserCheck size={20} /> }
+    ] : []),
+    { id: 'lands', label: 'Land Deals', icon: <Map size={20} /> },
+    { id: 'partnerships', label: 'Partnership Ops', icon: <Target size={20} /> },
+    { id: 'users', label: 'Users & Farmers', icon: <Users size={20} /> },
+    { id: 'crops', label: 'Crop Database', icon: <Wheat size={20} /> },
+    { id: 'tools', label: 'Tool Rentals', icon: <Hammer size={20} /> },
+    { id: 'marketplace', label: 'Marketplace', icon: <Store size={20} /> },
+  ];
 
   return (
     <aside className="w-72 bg-[#004d00] text-green-50 flex flex-col min-h-screen sticky top-0 shadow-2xl relative overflow-hidden">
@@ -23,13 +26,15 @@ function AdminSidebar({ activeTab, setActiveTab }) {
       
       {/* Brand Header */}
       <div className="p-8 pb-4 relative z-10">
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center gap-3 mb-6">
            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm border border-white/30">
               <Shield size={28} className="text-white" />
            </div>
            <div>
               <h1 className="font-black text-2xl tracking-wide text-white">Anndata</h1>
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#FF9800] bg-orange-950/50 px-2 py-0.5 rounded-md">Control Center</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#FF9800] bg-orange-950/50 px-2 py-0.5 rounded-md">
+                 {userRole === 'superadmin' ? '👑 Super Admin' : '🛠️ Sub-Admin'}
+              </span>
            </div>
         </div>
         <p className="text-xs uppercase font-black text-green-300 tracking-widest mb-4">Modules</p>
@@ -37,7 +42,7 @@ function AdminSidebar({ activeTab, setActiveTab }) {
 
       {/* Navigation Links */}
       <nav className="flex-1 px-4 relative z-10 flex flex-col gap-2">
-        {navItems.map((item) => {
+        {allNavItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
             <button
