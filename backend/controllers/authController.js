@@ -2,7 +2,7 @@ import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-// Send Mobile OTP (Real-World Authentication)
+// Send Mobile OTP (Real-World Indian SMS via Fast2SMS API)
 export const sendMobileOtp = async (req, res) => {
   try {
     const { mobile } = req.body;
@@ -10,6 +10,28 @@ export const sendMobileOtp = async (req, res) => {
       return res.status(400).json({ message: 'Valid 10-digit mobile number required' });
     }
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
+    // Call Fast2SMS Indian SMS Gateway API to deliver real cellular text message to physical SIM card
+    const apiKey = process.env.FAST2SMS_API_KEY || 'AsB0IFi8GqwHPSUCQVxokeW7Tngjm3rfp6hO5dtJyuYNRZ1zKXSqtyu0BcsWAYGPgJVMjpIxT4H8mXvi';
+    try {
+      const fast2smsRes = await fetch('https://www.fast2sms.com/dev/bulkV2', {
+        method: 'POST',
+        headers: {
+          'authorization': apiKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          route: 'otp',
+          variables_values: otp,
+          numbers: mobile
+        })
+      });
+      const smsData = await fast2smsRes.json();
+      console.log('Fast2SMS Real SMS Dispatch Response:', smsData);
+    } catch (smsErr) {
+      console.warn('Fast2SMS dispatch warning:', smsErr?.message);
+    }
+
     res.json({
       success: true,
       otp,
