@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +23,19 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Session Persistence Check
+  useEffect(() => {
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      const user = JSON.parse(userInfo);
+      if (user.role === 'admin' || user.role === 'superadmin') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/home', { replace: true });
+      }
+    }
+  }, [navigate]);
+
   // 1. Handle Email Login
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
@@ -38,14 +51,14 @@ function Login() {
       
       if (res.ok) {
         localStorage.setItem('userInfo', JSON.stringify(data));
-        toast.success('લૉગિન સફળ થયું! Welcome back!');
+        toast.success('લૉગિન સફળ થયું!');
         if (data.role === 'admin' || data.role === 'superadmin') {
            navigate('/admin');
         } else {
            navigate('/home');
         }
       } else {
-        setError(t(data.message) || 'લૉગિન નિષ્ફળ થયું. પ્લીઝ ઈમેઈલ કે પાસવર્ડ ચકાસો.');
+        setError(data.message || 'લૉગિન નિષ્ફળ થયું. પ્લીઝ ઈમેઈલ કે પાસવર્ડ ચકાસો.');
       }
     } catch (err) {
       setError('સર્વર કનેક્શન ક્ષતિ. કૃપા કરીને બેકએન્ડ ચાલુ છે કે નહીં તે ચકાસો.');
@@ -54,20 +67,21 @@ function Login() {
     }
   };
 
-  // 2. Handle Send Mobile OTP via Firebase
+  // 2. Handle Send Mobile OTP
   const handleSendOtp = async (e) => {
     e.preventDefault();
     if (!mobileNum || mobileNum.length < 10) {
       return setError('કૃપા કરીને માન્ય ૧૦-અંકનો મોબાઈલ નંબર દાખલ કરો.');
     }
     setError(null);
-    const toastId = toast.loading('Firebase વડે મોબાઈલ પર Real SMS OTP મોકલાઈ રહ્યો છે...');
+    const toastId = toast.loading('OTP મોકલાઈ રહ્યો છે...');
+
     try {
       await sendRealMobileSms(mobileNum, 'send-login-otp-btn');
       setOtpSent(true);
-      toast.success(`📱 Real SMS Sent to +91 ${mobileNum}! Check your text messages for 6-digit OTP.`, { id: toastId, duration: 9000 });
-    } catch (err) {
-      console.warn('Firebase error, falling back:', err?.message);
+      toast.success('📱 OTP કોડ મોકલ્યો!', { id: toastId });
+    } catch (firebaseErr) {
+      console.warn('Firebase SMS notice:', firebaseErr?.message);
       try {
         const res = await fetch('/api/users/send-mobile-otp', {
           method: 'POST',
@@ -78,12 +92,12 @@ function Login() {
         if (res.ok) {
           setGeneratedOtp(data.otp);
           setOtpSent(true);
-          toast.success(`📱 SMS Request processed for +91 ${mobileNum}!`, { id: toastId });
+          toast.success('📱 OTP કોડ મોકલ્યો!', { id: toastId });
         } else {
-          toast.error(data.message || 'OTP Error', { id: toastId });
+          toast.error(data.message || 'OTP મોકલવામાં ક્ષતિ', { id: toastId });
         }
       } catch (e) {
-        toast.error(`Firebase SMS Error: ${err?.message || 'Please add Vercel domain to Firebase Console Authorized Domains'}`, { id: toastId, duration: 8000 });
+        toast.error('OTP મોકલવામાં ક્ષતિ. પ્લીઝ ફરી પ્રયાસ કરો.', { id: toastId });
       }
     }
   };
@@ -94,9 +108,8 @@ function Login() {
     if (window.confirmationResult) {
       try {
         await window.confirmationResult.confirm(otpCode);
-        toast.success('Google Firebase વડે OTP ચકાસણી સફળ!');
+        toast.success('OTP ચકાસણી સફળ!');
         
-        // Log in / fetch user
         const res = await fetch('/api/users/mobile-login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -135,13 +148,13 @@ function Login() {
         setLoading(false);
       }
     } else {
-      setError('ખોટો OTP કોડ. પ્લીઝ સાચો ૬-અંકનો કોડ દાખલ કરો.');
+      setError('ખોટો OTP કોડ. પ્લીઝ સાચો કોડ દાખલ કરો.');
     }
   };
 
-  // 4. OFFICIAL REAL GOOGLE OAUTH POPUP LOGIN
+  // 4. OFFICIAL GOOGLE LOGIN
   const handleGoogleLogin = async () => {
-    const toastId = toast.loading('Google Official OAuth Popup ઓપન થઈ રહ્યું છે...');
+    const toastId = toast.loading('Google ઓથેન્ટિકેશન થઈ રહ્યું છે...');
     try {
       const googleUser = await loginWithGooglePopup();
       
@@ -158,7 +171,7 @@ function Login() {
 
       if (res.ok) {
         localStorage.setItem('userInfo', JSON.stringify(data));
-        toast.success(`Google વડે પ્રવેશ સફળ! (${googleUser.email})`, { id: toastId });
+        toast.success(`Google વડે પ્રવેશ સફળ!`, { id: toastId });
         if (data.role === 'admin' || data.role === 'superadmin') {
            navigate('/admin');
         } else {
@@ -169,14 +182,14 @@ function Login() {
       }
     } catch (err) {
       console.error(err);
-      toast.error('Google Sign-In Cancelled or Error: ' + err.message, { id: toastId });
+      toast.error('Google Sign-In Cancelled', { id: toastId });
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-[#004d00] to-slate-950 flex flex-col font-sans selection:bg-[#006400] selection:text-white relative overflow-hidden text-slate-100">
       
-      {/* Invisible Google reCAPTCHA Container */}
+      {/* Invisible reCAPTCHA Container */}
       <div id="recaptcha-container"></div>
 
       {/* Dynamic Ambient Blur Glows */}
@@ -299,25 +312,25 @@ function Login() {
                        type="submit" 
                        className="w-full py-4 bg-gradient-to-r from-[#006400] to-emerald-500 hover:from-[#004d00] hover:to-emerald-600 text-white rounded-2xl font-black text-base transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                      >
-                        <Sparkles size={18}/> Real SMS OTP મોકલો (Send Real Phone SMS)
+                        <Sparkles size={18}/> OTP મેળવો (Send Mobile OTP)
                      </button>
                   </form>
                ) : (
                   <form onSubmit={handleVerifyOtp} className="space-y-4 animate-fadeIn">
                      <div className="bg-emerald-950/60 p-4 rounded-2xl border border-emerald-500/40 text-center">
-                        <p className="text-xs font-bold text-emerald-300">Firebase SMS OTP dispatched to +91 {mobileNum}.</p>
-                        <p className="text-[11px] text-slate-300 mt-1">Check your physical phone SMS text messages for 6-digit OTP.</p>
+                        <p className="text-xs font-bold text-emerald-300">તમારા મોબાઈલ નંબર +91 {mobileNum} પર OTP મોકલવામાં આવ્યો છે.</p>
+                        <p className="text-[11px] text-slate-300 mt-1">કૃપા કરીને નીચે ૪-અંકનો અથવા ૬-અંકનો OTP દાખલ કરો.</p>
                      </div>
 
                      <div>
                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-2 text-center">
-                          ૬-અંકનો OTP કોડ દાખલ કરો
+                          OTP કોડ દાખલ કરો
                         </label>
                         <input 
                           type="text" 
                           required
                           maxLength="6"
-                          placeholder="••••••"
+                          placeholder="••••"
                           value={otpCode}
                           onChange={e => setOtpCode(e.target.value)}
                           className="w-full p-4 bg-slate-950/90 border-2 border-emerald-500 rounded-2xl text-white font-mono font-black text-center text-2xl tracking-[0.5em] focus:outline-none shadow-inner"
@@ -364,7 +377,7 @@ function Login() {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
              </svg>
-             Official Google Popup વડે લૉગિન કરો (Gmail Selection)
+             Google વડે ૧-ક્લિક લૉગિન કરો (Gmail Account)
           </button>
 
           {/* FOOTER LINK TO REGISTER */}

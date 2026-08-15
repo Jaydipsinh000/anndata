@@ -14,7 +14,7 @@ export const sendMobileOtp = async (req, res) => {
       success: true,
       otp,
       mobile,
-      message: `SMS Notification: Your Anndata Mobile Verification OTP code is ${otp}`
+      message: 'તમારા મોબાઈલ નંબર પર OTP કોડ મોકલવામાં આવ્યો છે.'
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -32,7 +32,7 @@ export const sendEmailOtp = async (req, res) => {
     // Check if email already registered
     const exists = await User.findOne({ email });
     if (exists) {
-      return res.status(400).json({ message: 'Email is already registered. Please login instead.' });
+      return res.status(400).json({ message: 'ઈમેઈલ પહેલેથી રજિસ્ટર્ડ છે. કૃપા કરીને લૉગિન કરો.' });
     }
 
     const code = 'ANN-' + Math.floor(1000 + Math.random() * 9000).toString();
@@ -40,7 +40,7 @@ export const sendEmailOtp = async (req, res) => {
       success: true,
       code,
       email,
-      message: `Email Notification: Your Anndata Email Verification Code is ${code}`
+      message: 'તમારા ઈમેઈલ સરનામા પર ચકાસણી કોડ મોકલવામાં આવ્યો છે.'
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -55,7 +55,7 @@ export const registerUser = async (req, res) => {
     // Check if user exists
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists with this email address' });
+      return res.status(400).json({ message: 'આ ઈમેઈલ સરનામા સાથે એકાઉન્ટ પહેલેથી મોજુદ છે.' });
     }
 
     // Hash password
@@ -100,7 +100,7 @@ export const registerUser = async (req, res) => {
         token: generateToken(user._id),
       });
     } else {
-      res.status(400).json({ message: 'Invalid user data' });
+      res.status(400).json({ message: 'અમાન્ય વિગતો' });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -128,25 +128,25 @@ export const loginUser = async (req, res) => {
         token: generateToken(user._id),
       });
     } else {
-      res.status(401).json({ message: 'Invalid email or password' });
+      res.status(401).json({ message: 'ખોટો ઈમેઈલ અથવા પાસવર્ડ' });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Google Account Login / Register
+// Google Account Login / Register (Preserving saved address & mobile)
 export const googleLogin = async (req, res) => {
   try {
     const { email, name, role, mobile, village, taluka, district, address } = req.body;
     if (!email) return res.status(400).json({ message: 'Google email is required' });
 
     let user = await User.findOne({ email });
-    const fullAddress = address || [village, taluka, district].filter(Boolean).join(', ');
 
     if (!user) {
       const salt = await bcrypt.genSalt(10);
       const randomPassword = await bcrypt.hash(Math.random().toString(36).slice(-10), salt);
+      const fullAddress = address || [village, taluka, district].filter(Boolean).join(', ');
       
       user = await User.create({
         name: name || email.split('@')[0],
@@ -163,12 +163,15 @@ export const googleLogin = async (req, res) => {
         trust_badge: 'verified'
       });
     } else {
-      // Update existing Google user if mobile or location details were submitted
+      // PRESERVE SAVED USER DETAILS - Only update if new non-empty values are submitted
       if (mobile && mobile !== '9999999999') user.mobile = mobile;
       if (village) user.village = village;
       if (taluka) user.taluka = taluka;
       if (district) user.district = district;
-      if (fullAddress) user.address = fullAddress;
+      if (address) user.address = address;
+      else if (!user.address && (user.village || user.taluka || user.district)) {
+        user.address = [user.village, user.taluka, user.district, 'Gujarat'].filter(Boolean).join(', ');
+      }
       await user.save();
     }
 

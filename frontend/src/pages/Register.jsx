@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -36,21 +36,32 @@ function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 1. Send Real Mobile Phone SMS via Google Firebase
+  // Session Persistence Check
+  useEffect(() => {
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      const user = JSON.parse(userInfo);
+      if (user.role === 'admin' || user.role === 'superadmin') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/home', { replace: true });
+      }
+    }
+  }, [navigate]);
+
+  // 1. Send Mobile OTP
   const handleSendMobileOtp = async () => {
     if (!formData.mobile || formData.mobile.length < 10) {
       return setError('કૃપા કરીને પહેલા ૧૦-અંકનો મોબાઈલ નંબર દાખલ કરો.');
     }
     setError(null);
-    const toastId = toast.loading('Google Firebase વડે મોબાઈલ પર Real SMS OTP મોકલાઈ રહ્યો છે...');
+    const toastId = toast.loading('OTP મોકલાઈ રહ્યો છે...');
     try {
-      // Call Real Firebase Phone Auth
       await sendRealMobileSms(formData.mobile, 'send-mobile-otp-btn');
       setMobileOtpSent(true);
-      toast.success(`📱 Real SMS Sent to +91 ${formData.mobile}! Please check your phone text messages for 6-digit OTP.`, { id: toastId, duration: 9000 });
+      toast.success('📱 OTP કોડ મોકલ્યો!', { id: toastId });
     } catch (err) {
-      console.warn('Firebase Phone Auth error:', err?.message);
-      // Fallback server request if domain authorization required
+      console.warn('Firebase SMS notice:', err?.message);
       try {
         const res = await fetch('/api/users/send-mobile-otp', {
           method: 'POST',
@@ -61,12 +72,12 @@ function Register() {
         if (res.ok) {
           setGeneratedMobileOtp(data.otp);
           setMobileOtpSent(true);
-          toast.success(`📱 SMS Request processed for +91 ${formData.mobile}! Check your text messages.`, { id: toastId, duration: 8000 });
+          toast.success('📱 OTP કોડ મોકલ્યો!', { id: toastId });
         } else {
-          toast.error(data.message || 'OTP SMS error', { id: toastId });
+          toast.error(data.message || 'OTP મોકલવામાં ક્ષતિ', { id: toastId });
         }
       } catch (e) {
-        toast.error(`Firebase SMS Error: ${err?.message || 'Please add Vercel domain to Firebase Console Authorized Domains'}`, { id: toastId, duration: 8000 });
+        toast.error('OTP મોકલવામાં ક્ષતિ. પ્લીઝ ફરી પ્રયાસ કરો.', { id: toastId });
       }
     }
   };
@@ -78,7 +89,7 @@ function Register() {
         await window.confirmationResult.confirm(userMobileOtp);
         setIsMobileVerified(true);
         setError(null);
-        toast.success('✅ Google Firebase વડે મોબાઈલ નંબર સફળતાપૂર્વક ચકાસાયો! (Mobile Verified)');
+        toast.success('✅ મોબાઈલ નંબર સફળતાપૂર્વક ચકાસાયો!');
         return;
       } catch (e) {
         console.error('Firebase OTP Confirmation error:', e);
@@ -88,9 +99,9 @@ function Register() {
     if (userMobileOtp === generatedMobileOtp || userMobileOtp === '1234') {
       setIsMobileVerified(true);
       setError(null);
-      toast.success('✅ મોબાઈલ નંબર સફળતાપૂર્વક ચકાસાયો! (Mobile Verified)');
+      toast.success('✅ મોબાઈલ નંબર સફળતાપૂર્વક ચકાસાયો!');
     } else {
-      setError('ખોટો મોબાઈલ OTP કોડ. પ્લીઝ ફોન પર આવેલ ૬-અંકનો કોડ દાખલ કરો.');
+      setError('ખોટો મોબાઈલ OTP કોડ. પ્લીઝ સાચો કોડ દાખલ કરો.');
     }
   };
 
@@ -111,7 +122,7 @@ function Register() {
       if (res.ok) {
         setGeneratedEmailCode(data.code);
         setEmailCodeSent(true);
-        toast.success(`✉️ Verification Email sent to ${formData.email}! Check your Email Inbox / Spam folder.`, { id: toastId, duration: 8000 });
+        toast.success('✉️ ચકાસણી કોડ મોકલ્યો!', { id: toastId });
       } else {
         toast.error(data.message || 'ઈમેઈલ કોડ મોકલવામાં નિષ્ફળ', { id: toastId });
       }
@@ -127,7 +138,7 @@ function Register() {
     }
     setIsEmailVerified(true);
     setError(null);
-    toast.success('✅ ઈમેઈલ સરનામું સફળતાપૂર્વક ચકાસાયું! (Email Verified)');
+    toast.success('✅ ઈમેઈલ સરનામું સફળતાપૂર્વક ચકાસાયું!');
   };
 
   // 5. Submit Form
@@ -174,11 +185,10 @@ function Register() {
 
   // 6. OFFICIAL REAL GOOGLE OAUTH POPUP SIGN-IN
   const handleGoogleRegister = async () => {
-    const toastId = toast.loading('Google Official OAuth Popup ઓપન થઈ રહ્યું છે...');
+    const toastId = toast.loading('Google ઓથેન્ટિકેશન થઈ રહ્યું છે...');
     try {
       const googleUser = await loginWithGooglePopup();
       
-      // Auto-fill Google Profile details (Real Gmail, Name, Photo)
       const res = await fetch('/api/users/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -186,6 +196,7 @@ function Register() {
           email: googleUser.email,
           name: googleUser.name,
           role: formData.role,
+          mobile: formData.mobile,
           village: formData.village,
           taluka: formData.taluka,
           district: formData.district
@@ -195,14 +206,14 @@ function Register() {
 
       if (res.ok) {
         localStorage.setItem('userInfo', JSON.stringify(data));
-        toast.success(`Google વડે સફળતાપૂર્વક સાઈન-અપ થયું! (${googleUser.email})`, { id: toastId });
+        toast.success(`Google વડે સફળતાપૂર્વક સાઈન-અપ થયું!`, { id: toastId });
         navigate('/home');
       } else {
         toast.error(data.message || 'Google રજિસ્ટ્રેશન નિષ્ફળ', { id: toastId });
       }
     } catch (err) {
       console.error(err);
-      toast.error('Google Sign-In Cancelled or Error: ' + err.message, { id: toastId });
+      toast.error('Google Sign-In Cancelled', { id: toastId });
     }
   };
 
@@ -229,10 +240,10 @@ function Register() {
           {/* Title Header */}
           <div className="text-center mt-6 mb-6">
             <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight uppercase">
-              સત્તાવાર ઓથેન્ટિકેટેડ રજિસ્ટ્રેશન
+              સત્તાવાર રજિસ્ટ્રેશન
             </h2>
             <p className="text-xs md:text-sm text-slate-300 font-medium mt-1">
-              Google OAuth અને SMS OTP વડે ૧૦૦% ચકાસાયેલ એકાઉન્ટ બનાવો
+              Google OAuth અને OTP વડે ૧૦૦% ચકાસાયેલ એકાઉન્ટ બનાવો
             </p>
           </div>
 
@@ -259,7 +270,7 @@ function Register() {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
              </svg>
-             Official Google Popup વડે ૧-ક્લિક સાઈન-અપ કરો (Gmail Auto-fill)
+             Google વડે ૧-ક્લિક સાઈન-અપ કરો (Gmail Account)
           </button>
 
           <div className="my-6 flex items-center gap-3">
@@ -352,7 +363,7 @@ function Register() {
                         onClick={handleSendMobileOtp}
                         className="px-4 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer shrink-0"
                       >
-                         {mobileOtpSent ? 'ફરી OTP મોકલો' : 'SMS OTP મેળવો'}
+                         {mobileOtpSent ? 'ફરી OTP મોકલો' : 'OTP મેળવો'}
                       </button>
                    )}
                 </div>
@@ -360,13 +371,13 @@ function Register() {
                 {mobileOtpSent && !isMobileVerified && (
                    <div className="bg-slate-900 p-3.5 rounded-xl border border-emerald-500/40 space-y-2 animate-fadeIn">
                       <p className="text-[11px] text-emerald-300 font-semibold flex items-center gap-1.5">
-                         <Phone size={14}/> Real SMS OTP dispatched via Firebase to +91 {formData.mobile}. Please check your phone SMS messages.
+                         <Phone size={14}/> તમારા મોબાઈલ નંબર +91 {formData.mobile} પર OTP મોકલવામાં આવ્યો છે.
                       </p>
                       <div className="flex gap-2">
                          <input 
                            type="text"
                            maxLength="6"
-                           placeholder="Enter 6-digit Mobile OTP"
+                           placeholder="OTP કોડ દાખલ કરો"
                            value={userMobileOtp}
                            onChange={e => setUserMobileOtp(e.target.value)}
                            className="flex-1 p-2.5 bg-slate-950 border border-white/20 rounded-lg text-white font-mono font-black text-center text-base tracking-widest focus:outline-none"
@@ -421,7 +432,7 @@ function Register() {
                 {emailCodeSent && !isEmailVerified && (
                    <div className="bg-slate-900 p-3.5 rounded-xl border border-indigo-500/40 space-y-2 animate-fadeIn">
                       <p className="text-[11px] text-indigo-300 font-semibold flex items-center gap-1.5">
-                         <Mail size={14}/> Verification Email dispatched to {formData.email}. Check your Inbox / Spam folder.
+                         <Mail size={14}/> તમારા ઈમેઈલ {formData.email} પર ચકાસણી કોડ મોકલ્યો છે. Inbox / Spam તપાસો.
                       </p>
                       <div className="flex gap-2">
                          <input 

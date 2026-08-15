@@ -24,18 +24,24 @@ function Navbar() {
   const parsedUser = isLoggedIn ? JSON.parse(userInfoStr) : null;
   const userRole = parsedUser ? parsedUser.role : null;
 
-  // Check if profile is incomplete (missing mobile or village/taluka/district)
-  const isProfileIncomplete = isLoggedIn && parsedUser && (!parsedUser.mobile || parsedUser.mobile === '9999999999' || !parsedUser.village || !parsedUser.taluka || !parsedUser.district);
+  // Profile is complete if mobile is present AND (village OR address is present)
+  const isProfileIncomplete = isLoggedIn && parsedUser && (
+    !parsedUser.mobile || 
+    parsedUser.mobile === '9999999999' || 
+    (!parsedUser.village && !parsedUser.address)
+  );
 
   useEffect(() => {
-    // Automatically trigger profile completion modal for Google users with incomplete location/mobile
+    // Only pop open modal if user has NOT saved their mobile/address yet
     if (isProfileIncomplete) {
       const timer = setTimeout(() => {
         setShowCompleteProfile(true);
       }, 1200);
       return () => clearTimeout(timer);
+    } else {
+      setShowCompleteProfile(false);
     }
-  }, [isLoggedIn, parsedUser?.mobile, parsedUser?.village]);
+  }, [isLoggedIn, parsedUser?.mobile, parsedUser?.village, parsedUser?.address]);
 
   const handleLogout = () => {
     localStorage.removeItem('userInfo');
@@ -88,6 +94,7 @@ function Navbar() {
         isOpen={showCompleteProfile}
         onClose={() => setShowCompleteProfile(false)}
         onUpdated={(updatedUser) => {
+          localStorage.setItem('userInfo', JSON.stringify(updatedUser));
           setShowCompleteProfile(false);
           window.location.reload();
         }}
@@ -124,7 +131,7 @@ function Navbar() {
             })}
           </ul>
 
-          {/* Incomplete Profile Alert Button */}
+          {/* Incomplete Profile Alert Button (Only shown if missing address/mobile) */}
           {isProfileIncomplete && (
             <button 
               onClick={() => setShowCompleteProfile(true)}
